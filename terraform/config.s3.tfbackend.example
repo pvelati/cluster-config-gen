@@ -1,0 +1,14 @@
+key        = "name.tfstate"
+encrypt    = false
+bucket     = "bucket-name"
+region     = "auto"
+access_key = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+secret_key = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+endpoints = {
+  s3 = "https://aaaaaaaaa.s3.service.com"
+}
+skip_credentials_validation = false 
+skip_region_validation      = false
+skip_requesting_account_id  = false
+skip_metadata_api_check     = false
+skip_s3_checksum            = false
