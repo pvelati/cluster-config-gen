@@ -71,11 +71,11 @@ func main() {
 	}
 
 	// Genera l'inventario YAML per Ansible
-	generateInventoryYAML("outputs/inventory.yaml", config)
+	generateInventoryYAML("ansible/inventory.yaml", config)
 
 	// Genera il file di risorse Terraform per ogni cluster
 	for _, cluster := range config.Clusters {
-		generateFromTemplate("templates/terraform_template.tf.tmpl", fmt.Sprintf("outputs/%s_resources.tf", cluster.Name), cluster)
+		generateFromTemplate("templates/terraform_template.tf.tmpl", fmt.Sprintf("terraform/%s_resources.tf", cluster.Name), cluster)
 	}
 }
 

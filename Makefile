@@ -6,6 +6,6 @@ run:
 
 .PHONY: clear
 clear:
-	find outputs/. -type f -name "inventory.yaml" -prune -exec rm -rf {} \;
-	find outputs/. -type f -name "*_resources.tf" -prune -exec rm -rf {} \;
+	find ansible/. -type f -name "inventory.yaml" -prune -exec rm -rf {} \;
+	find terraform/. -type f -name "*_resources.tf" -prune -exec rm -rf {} \;
 
