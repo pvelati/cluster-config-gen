@@ -1,0 +1,16 @@
+{{- $cluster := . -}}
+{{range $i, $masterIP := .MasterIPs}}
+resource "proxmox_vm_qemu" "{{ .Name }}_master_{{ $i }}" {
+  name = "{{ .Name }}-master-{{ add1 $i }}"
+  ip   = "{{ index $cluster.MasterIPs $i }}"
+  # Aggiungi qui ulteriori configurazioni specifiche
+}
+{{end}}
+
+{{range $i, $workerIP := .WorkerIPs}}
+resource "proxmox_vm_qemu" "{{ .Name }}_worker_{{ $i }}" {
+  name = "{{ .Name }}-worker-{{ add1 $i }}"
+  ip   = "{{ index $cluster.WorkerIPs $i }}"
+  # Aggiungi qui ulteriori configurazioni specifiche
+}
+{{end}}
