@@ -22,4 +22,5 @@ go.work
 go.work.sum
 
 # Custom
-./outputs/*
+outputs/inventory.yaml
+outputs/*_resources.tf
