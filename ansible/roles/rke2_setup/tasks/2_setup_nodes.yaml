@@ -1,0 +1,114 @@
+---
+- name: Configure rke2 config file on all nodes
+  ansible.builtin.template:
+    src: 'config.yaml.j2'
+    dest: '/etc/rancher/rke2/config.yaml'
+    mode: '0755'
+
+- name: Check if rke2 executable exists on nodes
+  ansible.builtin.stat:
+    path: /usr/local/bin/rke2
+  register: rke2_binary
+
+- name: Download and install rke2 binary on nodes
+  block:
+  - name: Download rke2 install script and set executable permissions
+    ansible.builtin.uri:
+      url: https://get.rke2.io
+      dest: /tmp/install.sh
+      mode: 'u+x'
+      creates: /tmp/install.sh
+
+  - name: Install rke2 server on master nodes (rinominare in control-plane?)
+    ansible.builtin.shell:
+      cmd: /tmp/install.sh
+      executable: /bin/sh
+    when: "'rke2_master' in group_names"
+
+  - name: Install rke2 agent on worker nodes (rinominare in altro?)
+    ansible.builtin.shell:
+      cmd: /tmp/install.sh
+      executable: /bin/sh
+    environment:
+      INSTALL_RKE2_TYPE: 'agent'
+    when: "'rke2_worker' in group_names"
+
+  when: not rke2_binary.stat.exists
+
+- name: Setup first master node
+  block:
+  - name: Download kube-vip RBAC manifest from internet
+    ansible.builtin.uri:
+      url: 'https://kube-vip.io/manifests/rbac.yaml'
+      dest: '/var/lib/rancher/rke2/server/manifests/kube-vip-rbac.yaml'
+      mode: '0755'
+      creates: '/var/lib/rancher/rke2/server/manifests/kube-vip-rbac.yaml'
+
+  - name: Copy static files
+    ansible.builtin.copy:
+      src: 'manifests/{{ item }}'
+      dest: '/var/lib/rancher/rke2/server/manifests/{{ item }}'
+      mode: '0755'
+    loop:
+      - rke2-canal-config.yaml
+      - rke2-coredns-config.yaml
+      - kube-vip-ds-services.yaml
+  
+  - name: Copy template files
+    ansible.builtin.template:
+      src: 'manifests/{{ item }}.j2'
+      dest: '/var/lib/rancher/rke2/server/manifests/{{ item }}'
+      mode: '0755'
+    loop:
+      - kube-vip-ds-controlplane.yaml
+      - rke2-ingress-nginx-config.yaml
+
+  - name: Enable and start rke2-server systemd unit on first master nodes
+    systemd:
+      name: rke2-server.service
+      enabled: yes
+      state: started
+
+  when: "'rke2_master' in group_names and inventory_hostname == groups['rke2_master'][0]"
+
+- name: Wait for Kubernetes API to become available
+  ansible.builtin.wait_for:
+    host: "{{ cluster_vip_fqdn }}"  
+    port: 6443
+    connect_timeout: 5
+    delay: 5
+    timeout: 60
+  run_once: true
+  delegate_to: localhost
+
+- name: Start all masters and configure kubectl and environment variables on all masters
+  block:
+  - name: Enable and start rke2-server systemd unit on other master nodes
+    systemd:
+      name: rke2-server.service
+      enabled: yes
+      state: started
+
+  - name: Add lines in bashrc
+    ansible.builtin.lineinfile:
+      path: "{{ ansible_env.HOME }}/.bashrc"
+      line: "{{ item }}"
+    loop:
+      - "export KUBECONFIG=/etc/rancher/rke2/rke2.yaml"
+      - "export PATH=${PATH}:/var/lib/rancher/rke2/bin"
+      - "alias k=kubectl"
+    register: bashrc_updates
+
+  - name: Reload .bashrc file
+    ansible.builtin.shell:
+      cmd: 'source {{ ansible_env.HOME }}/.bashrc'
+      executable: /bin/bash
+    when: bashrc_updates.changed
+  when: "'rke2_master' in group_names"
+
+- name: Enable and start rke2-agent systemd unit on all worker nodes
+  systemd:
+    name: rke2-agent.service
+    enabled: yes
+    state: started
+  when: "'rke2_worker' in group_names"

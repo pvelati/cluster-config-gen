@@ -1,0 +1,16 @@
+mirrors:
+  docker.io:
+    endpoint:
+      - "http://{{ container_registry_address }}:5000"
+  registry.k8s.io:
+    endpoint:
+      - "http://{{ container_registry_address }}:5001"
+  quay.io:
+    endpoint:
+      - "http://{{ container_registry_address }}:5002"
+  gcr.io:
+    endpoint:
+      - "http://{{ container_registry_address }}:5003"
+  ghcr.io:
+    endpoint:
+      - "http://{{ container_registry_address }}:5004"

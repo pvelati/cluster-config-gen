@@ -1,0 +1,14 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Setup rke2 cluster
+  collections:
+    - kubernetes.core
+  hosts:
+    - rke2_master
+    - rke2_worker
+  become: true
+  environment:
+    K8S_AUTH_KUBECONFIG: "{{ lookup('env','HOME') }}/{{ active_kubeconfig_file }}"
+
+  roles:
+    - rke2_setup

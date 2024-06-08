@@ -1,0 +1,22 @@
+---
+- name: Pre-req on all nodes
+  ansible.builtin.import_tasks: 1_prereq.yaml
+  tags: rke2_prereq
+
+- name: Setup nodes
+  ansible.builtin.import_tasks: 2_setup_nodes.yaml
+  tags: rke2_node_setup
+
+- name: Local setup cluster
+  become: false
+  ansible.builtin.import_tasks: 3_local_setup.yaml
+  run_once: true
+  delegate_to: localhost
+  tags: rke2_local_setup
+
+# - name: Bootstrap Flux
+#   become: false
+#   ansible.builtin.import_tasks: 4_bootstrap_flux.yaml
+#   run_once: true
+#   delegate_to: localhost
+#   tags: rke2_bootstrap_flux

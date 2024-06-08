@@ -24,3 +24,7 @@ go.work.sum
 # Custom
 outputs/inventory.yaml
 outputs/*_resources.tf
+
+# Secrets
+terraform/config.s3.tfbackend
+terraform/terraform.tfvars.json
