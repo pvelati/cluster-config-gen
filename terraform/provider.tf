@@ -1,6 +1,6 @@
 provider "opnsense" {
-  uri = var.opnsense.uri 
-  api_key = var.opnsense.api_key
+  uri        = var.opnsense.uri
+  api_key    = var.opnsense.api_key
   api_secret = var.opnsense.api_secret
 }
 provider "proxmox" {

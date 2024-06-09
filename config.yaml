@@ -1,13 +1,8 @@
+---
 clusters:
   - name: cluster1
-    num_master: 3
-    num_worker: 5
-    vip: true
+    num_master: 1
+    num_worker: 1
+    vip: false
     master_last_octet: 121
     worker_last_octet: 131
-  - name: cluster2
-    num_master: 1
-    num_worker: 4
-    vip: false
-    master_last_octet: 141
-    worker_last_octet: 151

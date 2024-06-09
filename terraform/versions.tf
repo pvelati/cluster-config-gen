@@ -2,7 +2,7 @@
 terraform {
   required_providers {
     opnsense = {
-      source = "browningluke/opnsense"
+      source  = "browningluke/opnsense"
       version = "0.10.1"
     }
     proxmox = {
