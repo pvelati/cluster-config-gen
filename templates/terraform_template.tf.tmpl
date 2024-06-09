@@ -19,14 +19,12 @@ resource "proxmox_vm_qemu" "{{ $masterNode.TerraformResourceName }}" {
   cpu = "host"
   scsihw = "virtio-scsi-single"
   tags = "debian;{{range $i, $v := $masterNode.ProxmoxVmTags}}{{if $i}};{{end}}{{$v}}{{end}}"
-  
-  ---------------- AGGIUNTO FIN QUI NEL CODICE
-  
   network {
     bridge = var.bridge_name
     firewall = false
     model = "virtio"
   }
+
   // this must match what you've set in the template or you will end up with 2 disks
   disks {
     scsi {
@@ -91,6 +89,7 @@ resource "proxmox_vm_qemu" "{{ $masterNode.TerraformResourceName }}" {
 }
 {{end}}
 
+---------------- AGGIUNTO FIN QUI NEL CODICE
 
 
 {{range $workerNode := .Workers}}
