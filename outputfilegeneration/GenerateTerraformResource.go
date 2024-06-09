@@ -3,6 +3,7 @@ package outputfilegeneration
 import (
 	"strings"
 
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/pvelati/cluster-config-gen/types"
@@ -26,7 +27,14 @@ func GenerateTerraformResource(outputFile string, internalDataCluster types.Inte
 		vmBody.SetAttributeValue("vmid", cty.NumberIntVal(int64(master.ProxmoxVMID)))
 		vmBody.SetAttributeValue("full_clone", cty.BoolVal(true))
 		vmBody.SetAttributeValue("agent", cty.NumberIntVal(1))
-		vmBody.SetAttributeValue("target_node", cty.StringVal("var.proxmox_node_name"))
+		vmBody.SetAttributeTraversal("target_node", hcl.Traversal{
+			hcl.TraverseRoot{
+				Name: "var",
+			},
+			hcl.TraverseAttr{
+				Name: "proxmox_node_name",
+			},
+		})
 		vmBody.SetAttributeValue("clone", cty.StringVal("deb12-template"))
 		vmBody.SetAttributeValue("cores", cty.NumberIntVal(1))
 		vmBody.SetAttributeValue("memory", cty.NumberIntVal(1024))
@@ -85,9 +93,30 @@ func GenerateTerraformResource(outputFile string, internalDataCluster types.Inte
 		vmBody.AppendUnstructuredTokens(commentCloudinit)
 		vmBody.SetAttributeValue("os_type", cty.StringVal("cloud-init"))
 		vmBody.SetAttributeValue("ipconfig0", cty.StringVal("ip="+master.IP+"/24,gw=${var.gateway}"))
-		vmBody.SetAttributeValue("nameserver", cty.StringVal("var.nameserver"))
-		vmBody.SetAttributeValue("ciuser", cty.StringVal("var.user"))
-		vmBody.SetAttributeValue("sshkeys", cty.StringVal("var.sshkeys"))
+		vmBody.SetAttributeTraversal("nameserver", hcl.Traversal{
+			hcl.TraverseRoot{
+				Name: "var",
+			},
+			hcl.TraverseAttr{
+				Name: "nameserver",
+			},
+		})
+		vmBody.SetAttributeTraversal("ciuser", hcl.Traversal{
+			hcl.TraverseRoot{
+				Name: "var",
+			},
+			hcl.TraverseAttr{
+				Name: "user",
+			},
+		})
+		vmBody.SetAttributeTraversal("sshkeys", hcl.Traversal{
+			hcl.TraverseRoot{
+				Name: "var",
+			},
+			hcl.TraverseAttr{
+				Name: "sshkeys",
+			},
+		})
 		vmBody.AppendNewline()
 
 		commentProvisioner := hclwrite.Tokens{
@@ -102,8 +131,22 @@ func GenerateTerraformResource(outputFile string, internalDataCluster types.Inte
 		vmConnectionBody := vmConnection.Body()
 		vmConnectionBody.SetAttributeValue("type", cty.StringVal("ssh"))
 		vmConnectionBody.SetAttributeValue("host", cty.StringVal("self.default_ipv4_address"))
-		vmConnectionBody.SetAttributeValue("user", cty.StringVal("var.user"))
-		vmConnectionBody.SetAttributeValue("private_key", cty.StringVal("var.private_key"))
+		vmConnectionBody.SetAttributeTraversal("user", hcl.Traversal{
+			hcl.TraverseRoot{
+				Name: "var",
+			},
+			hcl.TraverseAttr{
+				Name: "user",
+			},
+		})
+		vmConnectionBody.SetAttributeTraversal("private_key", hcl.Traversal{
+			hcl.TraverseRoot{
+				Name: "var",
+			},
+			hcl.TraverseAttr{
+				Name: "private_key",
+			},
+		})
 		vmProvisioner := vmBody.AppendNewBlock("provisioner", []string{"remote-exec"})
 		vmProvisionerBody := vmProvisioner.Body()
 		vmProvisionerBody.SetAttributeValue("inline", cty.ListVal([]cty.Value{
