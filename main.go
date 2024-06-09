@@ -15,6 +15,7 @@ import (
 const masterSubnet = "192.168.0."
 const workerSubnet = "192.168.1."
 const domain = "home.lab"
+const baseVmID = 4000
 
 func main() {
 	// Leggi il file di configurazione YAML
@@ -49,37 +50,41 @@ func main() {
 		}
 
 		// Genera IP per i master
-		for j := 0; j < cluster.NumMaster; j++ {
-			host := fmt.Sprintf("k8s-%s-master-%d.%s", cluster.Name, j+1, domain)
-			ip := fmt.Sprintf("%s%d", masterSubnet, cluster.MasterLastOctet+j)
+		for masterNodeIndex := 0; masterNodeIndex < cluster.NumMaster; masterNodeIndex++ {
+			nodeNumber := masterNodeIndex + 1
+			lastIpDigit := cluster.MasterLastOctet + masterNodeIndex
+			host := fmt.Sprintf("k8s-%s-master-%d.%s", cluster.Name, nodeNumber, domain)
+			ip := fmt.Sprintf("%s%d", masterSubnet, lastIpDigit)
 			oneCluster.Masters = append(oneCluster.Masters, types.InternalDataMaster{
 				IP:                    ip,
 				Host:                  host,
-				ProxmoxVMID:           4000 + j,
-				TerraformResourceName: fmt.Sprintf("%s_master_%d", cluster.Name, j+1),
-				ProxmoxVmName:         fmt.Sprintf("%s-master-%d", cluster.Name, j+1),
+				ProxmoxVMID:           baseVmID + lastIpDigit,
+				TerraformResourceName: fmt.Sprintf("%s_master_%d", cluster.Name, nodeNumber),
+				ProxmoxVmName:         fmt.Sprintf("%s-master-%d", cluster.Name, nodeNumber),
 				ProxmoxVmDescription:  fmt.Sprintf("master node of kubernetes cluster %s", cluster.Name),
 				ProxmoxVmTags: []string{
-					fmt.Sprintf("k8s-%s", cluster.Name),
-					fmt.Sprintf("k8s-%s-master", cluster.Name),
+					fmt.Sprintf("k8s-cluster-%s-vm", cluster.Name),
+					fmt.Sprintf("k8s-cluster-%s-master", cluster.Name),
 				},
 			})
 		}
 
 		// Genera IP per i worker
-		for j := 0; j < cluster.NumWorker; j++ {
-			host := fmt.Sprintf("k8s-%s-worker-%d.%s", cluster.Name, j+1, domain)
-			ip := fmt.Sprintf("%s%d", workerSubnet, cluster.WorkerLastOctet+j)
+		for workerNodeIndex := 0; workerNodeIndex < cluster.NumWorker; workerNodeIndex++ {
+			nodeNumber := workerNodeIndex + 1
+			lastIpDigit := cluster.WorkerLastOctet + workerNodeIndex
+			host := fmt.Sprintf("k8s-%s-worker-%d.%s", cluster.Name, nodeNumber, domain)
+			ip := fmt.Sprintf("%s%d", workerSubnet, lastIpDigit)
 			oneCluster.Workers = append(oneCluster.Workers, types.InternalDataWorker{
 				IP:                    ip,
 				Host:                  host,
-				ProxmoxVMID:           4000 + j,
-				TerraformResourceName: fmt.Sprintf("%s_worker_%d", cluster.Name, j+1),
-				ProxmoxVmName:         fmt.Sprintf("%s-worker-%d", cluster.Name, j+1),
+				ProxmoxVMID:           baseVmID + lastIpDigit,
+				TerraformResourceName: fmt.Sprintf("%s_worker_%d", cluster.Name, nodeNumber),
+				ProxmoxVmName:         fmt.Sprintf("%s-worker-%d", cluster.Name, nodeNumber),
 				ProxmoxVmDescription:  fmt.Sprintf("worker node of kubernetes cluster %s", cluster.Name),
 				ProxmoxVmTags: []string{
-					fmt.Sprintf("k8s-%s", cluster.Name),
-					fmt.Sprintf("k8s-%s-worker", cluster.Name),
+					fmt.Sprintf("k8s-cluster-%s-vm", cluster.Name),
+					fmt.Sprintf("k8s-cluster-%s-worker", cluster.Name),
 				},
 			})
 		}
