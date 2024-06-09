@@ -8,25 +8,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pvelati/cluster-config-gen/types"
+
 	"gopkg.in/yaml.v3"
 )
-
-// Cluster rappresenta una configurazione di cluster Kubernetes.
-type Cluster struct {
-	Name            string   `yaml:"name"`
-	NumMaster       int      `yaml:"num_master"`
-	NumWorker       int      `yaml:"num_worker"`
-	VIP             bool     `yaml:"vip"`
-	MasterLastOctet int      `yaml:"master_last_octet"`
-	WorkerLastOctet int      `yaml:"worker_last_octet"`
-	MasterIPs       []string `yaml:"master_ips"`
-	WorkerIPs       []string `yaml:"worker_ips"`
-}
-
-// Config rappresenta la struttura del file di configurazione.
-type Config struct {
-	Clusters []Cluster `yaml:"clusters"`
-}
 
 // Definire i primi 3 ottetti delle subnet
 const masterSubnet = "192.168.0."
@@ -40,7 +25,7 @@ func main() {
 		log.Fatalf("Errore nella lettura del file di configurazione: %v", err)
 	}
 
-	var config Config
+	var config types.Config
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		log.Fatalf("Errore nel fare l'unmarshal dello YAML: %v", err)
 	}
@@ -79,7 +64,7 @@ func main() {
 	}
 }
 
-func generateInventoryYAML(outputFile string, config Config) {
+func generateInventoryYAML(outputFile string, config types.Config) {
 	inventory := make(map[string]interface{})
 
 	for _, cluster := range config.Clusters {
@@ -120,7 +105,7 @@ func generateInventoryYAML(outputFile string, config Config) {
 	writeToFile(outputFile, string(data))
 }
 
-func generateFromTemplate(templateFile, outputFile string, cluster Cluster) {
+func generateFromTemplate(templateFile, outputFile string, cluster types.Cluster) {
 	funcMap := template.FuncMap{
 		"add1": func(i int) int { return i + 1 },
 	}
