@@ -1,7 +1,6 @@
 package outputfilegeneration
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/pvelati/cluster-config-gen/types"
@@ -9,36 +8,30 @@ import (
 )
 
 func GenerateInventoryYAML(
-	domain string, // FIXME: remove me
 	outputFile string,
-	config types.Config,
+	internalData types.InternalData,
 ) {
 	inventory := make(map[string]interface{})
 
-	for _, cluster := range config.Clusters {
-		masterGroup := fmt.Sprintf("%s_master", cluster.Name)
-		workerGroup := fmt.Sprintf("%s_worker", cluster.Name)
-
-		inventory[masterGroup] = map[string]interface{}{
+	for _, cluster := range internalData.Clusters {
+		inventory[cluster.AnsibleMasterGroup] = map[string]interface{}{
 			"hosts": make(map[string]interface{}),
 		}
-		inventory[workerGroup] = map[string]interface{}{
+		inventory[cluster.AnsibleWorkerGroup] = map[string]interface{}{
 			"hosts": make(map[string]interface{}),
 		}
 
-		for i, ip := range cluster.MasterIPs {
-			host := fmt.Sprintf("k8s-%s-master-%d.%s", cluster.Name, i+1, domain)
-			inventory[masterGroup].(map[string]interface{})["hosts"].(map[string]interface{})[host] = map[string]string{"ansible_host": ip}
+		for _, hostInfo := range cluster.Masters {
+			inventory[cluster.AnsibleMasterGroup].(map[string]interface{})["hosts"].(map[string]interface{})[hostInfo.Host] = map[string]string{"ansible_host": hostInfo.IP}
 		}
-		for i, ip := range cluster.WorkerIPs {
-			host := fmt.Sprintf("k8s-%s-worker-%d.%s", cluster.Name, i+1, domain)
-			inventory[workerGroup].(map[string]interface{})["hosts"].(map[string]interface{})[host] = map[string]string{"ansible_host": ip}
+		for _, hostInfo := range cluster.Workers {
+			inventory[cluster.AnsibleWorkerGroup].(map[string]interface{})["hosts"].(map[string]interface{})[hostInfo.Host] = map[string]string{"ansible_host": hostInfo.IP}
 		}
 
 		clusterGroup := map[string]interface{}{
 			"children": map[string]interface{}{
-				masterGroup: nil,
-				workerGroup: nil,
+				cluster.AnsibleMasterGroup: nil,
+				cluster.AnsibleWorkerGroup: nil,
 			},
 		}
 
