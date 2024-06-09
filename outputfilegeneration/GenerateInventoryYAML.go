@@ -7,42 +7,54 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type ansibleInventoryGroupType struct {
+	Children map[string]any                      `yaml:"children,omitempty"`
+	Hosts    map[string]ansibleInventoryHostType `yaml:"hosts,omitempty"`
+}
+
+type ansibleInventoryHostType struct {
+	AnsibleHost string
+}
+
 // GenerateInventoryYAML genera un file di inventario YAML per Ansible.
 func GenerateInventoryYAML(
 	outputFile string, // Percorso del file di output
 	internalData types.InternalData, // Dati interni dei cluster per la generazione dell'inventario
 ) {
 	// Mappa per memorizzare l'inventario
-	inventory := make(map[string]interface{})
+	inventory := map[string]ansibleInventoryGroupType{}
 
 	// Iterazione sui cluster per generare i gruppi di host
 	for _, cluster := range internalData.Clusters {
-		// Aggiunta dei gruppi master e worker all'inventario
-		inventory[cluster.AnsibleMasterGroup] = map[string]interface{}{
-			"hosts": make(map[string]interface{}),
+		// Aggiunta degli host master all'inventario
+		inventoryAnsibleMasterGroupHosts := map[string]ansibleInventoryHostType{}
+		for _, hostInfo := range cluster.Masters {
+			inventoryAnsibleMasterGroupHosts[hostInfo.Host] = ansibleInventoryHostType{
+				AnsibleHost: hostInfo.IP,
+			}
 		}
-		inventory[cluster.AnsibleWorkerGroup] = map[string]interface{}{
-			"hosts": make(map[string]interface{}),
+		inventory[cluster.AnsibleMasterGroup] = ansibleInventoryGroupType{
+			Hosts: inventoryAnsibleMasterGroupHosts,
 		}
 
-		// Aggiunta degli host master all'inventario
-		for _, hostInfo := range cluster.Masters {
-			inventory[cluster.AnsibleMasterGroup].(map[string]interface{})["hosts"].(map[string]interface{})[hostInfo.Host] = map[string]string{"ansible_host": hostInfo.IP}
-		}
 		// Aggiunta degli host worker all'inventario
+		inventoryAnsibleWorkerGroupHosts := map[string]ansibleInventoryHostType{}
 		for _, hostInfo := range cluster.Workers {
-			inventory[cluster.AnsibleWorkerGroup].(map[string]interface{})["hosts"].(map[string]interface{})[hostInfo.Host] = map[string]string{"ansible_host": hostInfo.IP}
+			inventoryAnsibleWorkerGroupHosts[hostInfo.Host] = ansibleInventoryHostType{
+				AnsibleHost: hostInfo.IP,
+			}
+		}
+		inventory[cluster.AnsibleWorkerGroup] = ansibleInventoryGroupType{
+			Hosts: inventoryAnsibleWorkerGroupHosts,
 		}
 
 		// Creazione di un gruppo per il cluster
-		clusterGroup := map[string]interface{}{
-			"children": map[string]interface{}{
+		inventory[cluster.Name] = ansibleInventoryGroupType{
+			Children: map[string]any{
 				cluster.AnsibleMasterGroup: nil,
 				cluster.AnsibleWorkerGroup: nil,
 			},
 		}
-
-		inventory[cluster.Name] = clusterGroup
 	}
 
 	// Conversione dell'inventario in YAML
