@@ -94,7 +94,11 @@ func main() {
 	outputfilegeneration.GenerateInventoryYAML("ansible/inventory.yaml", internalData)
 
 	// Genera il file di risorse Terraform per ogni cluster
+	//for _, internalDataCluster := range internalData.Clusters {
+	//	outputfilegeneration.GenerateFromTemplate("templates/terraform_template.tf.tmpl", fmt.Sprintf("terraform/%s_resources.tf", internalDataCluster.Name), internalDataCluster)
+	//}
+	// Genera il file di risorse Terraform per ogni cluster
 	for _, internalDataCluster := range internalData.Clusters {
-		outputfilegeneration.GenerateFromTemplate("templates/terraform_template.tf.tmpl", fmt.Sprintf("terraform/%s_resources.tf", internalDataCluster.Name), internalDataCluster)
+		outputfilegeneration.GenerateTerraformResource(fmt.Sprintf("terraform/%s_resources.tf", internalDataCluster.Name), internalDataCluster)
 	}
 }

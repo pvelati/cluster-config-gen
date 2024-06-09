@@ -1,3 +1,4 @@
+// DEPRECATO E NON CHIAMATO, CANCELLARE QUANDO SI E' SICURI CHE NON SERVA PIU'
 package outputfilegeneration
 
 import (

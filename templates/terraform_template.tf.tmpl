@@ -1,5 +1,5 @@
+// DEPRECATO E NON CHIAMATO, CANCELLARE QUANDO SI E' SICURI CHE NON SERVA PIU'
 // data for cluster {{ .Name }}
-
 // https://github.com/Telmate/terraform-provider-proxmox/blob/master/docs/resources/vm_qemu.md
 
 {{range $masterNode := .Masters}}
@@ -19,6 +19,9 @@ resource "proxmox_vm_qemu" "{{ $masterNode.TerraformResourceName }}" {
   cpu = "host"
   scsihw = "virtio-scsi-single"
   tags = "debian;{{range $i, $v := $masterNode.ProxmoxVmTags}}{{if $i}};{{end}}{{$v}}{{end}}"
+  
+  ---------------- AGGIUNTO FIN QUI NEL CODICE
+  
   network {
     bridge = var.bridge_name
     firewall = false
@@ -106,7 +109,7 @@ resource "proxmox_vm_qemu" "{{ $workerNode.TerraformResourceName }}" {
   sockets = 1
   cpu = "host"
   scsihw = "virtio-scsi-single"
-  tags = "debian;{{range $i, $v := $workerNode.ProxmoxVmTags}}{{if $i}};{{end}}{{$v}}{{end}}"
+  tags = "debian;k8s_{{ $.ClusterName }}"
   network {
     bridge = var.bridge_name
     firewall = false
