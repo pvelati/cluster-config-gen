@@ -63,8 +63,7 @@ func main() {
 				ProxmoxVmName:         fmt.Sprintf("%s-master-%d", cluster.Name, nodeNumber),
 				ProxmoxVmDescription:  fmt.Sprintf("master node of kubernetes cluster %s", cluster.Name),
 				ProxmoxVmTags: []string{
-					fmt.Sprintf("k8s-cluster-%s-vm", cluster.Name),
-					fmt.Sprintf("k8s-cluster-%s-master", cluster.Name),
+					fmt.Sprintf("k8s_%s", cluster.Name),
 				},
 			})
 		}
@@ -83,8 +82,7 @@ func main() {
 				ProxmoxVmName:         fmt.Sprintf("%s-worker-%d", cluster.Name, nodeNumber),
 				ProxmoxVmDescription:  fmt.Sprintf("worker node of kubernetes cluster %s", cluster.Name),
 				ProxmoxVmTags: []string{
-					fmt.Sprintf("k8s-cluster-%s-vm", cluster.Name),
-					fmt.Sprintf("k8s-cluster-%s-worker", cluster.Name),
+					fmt.Sprintf("k8s_%s", cluster.Name),
 				},
 			})
 		}
