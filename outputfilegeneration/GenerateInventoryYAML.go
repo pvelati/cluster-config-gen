@@ -29,7 +29,7 @@ func GenerateInventoryYAML(
 		// Aggiunta degli host master all'inventario
 		inventoryAnsibleMasterGroupHosts := map[string]ansibleInventoryHostType{}
 		for _, hostInfo := range cluster.Masters {
-			inventoryAnsibleMasterGroupHosts[hostInfo.Host] = ansibleInventoryHostType{
+			inventoryAnsibleMasterGroupHosts[hostInfo.Host+"."+hostInfo.Domain] = ansibleInventoryHostType{
 				AnsibleHost: hostInfo.IP,
 			}
 		}
@@ -40,7 +40,7 @@ func GenerateInventoryYAML(
 		// Aggiunta degli host worker all'inventario
 		inventoryAnsibleWorkerGroupHosts := map[string]ansibleInventoryHostType{}
 		for _, hostInfo := range cluster.Workers {
-			inventoryAnsibleWorkerGroupHosts[hostInfo.Host] = ansibleInventoryHostType{
+			inventoryAnsibleWorkerGroupHosts[hostInfo.Host+"."+hostInfo.Domain] = ansibleInventoryHostType{
 				AnsibleHost: hostInfo.IP,
 			}
 		}

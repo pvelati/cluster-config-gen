@@ -92,7 +92,8 @@ func GenerateTerraformResource(outputFile string, internalDataCluster types.Inte
 		}
 		vmBody.AppendUnstructuredTokens(commentCloudinit)
 		vmBody.SetAttributeValue("os_type", cty.StringVal("cloud-init"))
-		vmBody.SetAttributeValue("ipconfig0", cty.StringVal("ip="+master.IP+"/24,gw=${var.gateway}"))
+		vmBody.SetAttributeValue("ipconfig0", cty.StringVal("ip="+master.IP+"/24,gw="+master.Gateway))
+		vmBody.SetAttributeValue("searchdomain", cty.StringVal(master.Domain))
 		vmBody.SetAttributeTraversal("nameserver", hcl.Traversal{
 			hcl.TraverseRoot{
 				Name: "var",
@@ -130,7 +131,14 @@ func GenerateTerraformResource(outputFile string, internalDataCluster types.Inte
 		vmConnection := vmBody.AppendNewBlock("connection", nil)
 		vmConnectionBody := vmConnection.Body()
 		vmConnectionBody.SetAttributeValue("type", cty.StringVal("ssh"))
-		vmConnectionBody.SetAttributeValue("host", cty.StringVal("self.default_ipv4_address"))
+		vmConnectionBody.SetAttributeTraversal("host", hcl.Traversal{
+			hcl.TraverseRoot{
+				Name: "self",
+			},
+			hcl.TraverseAttr{
+				Name: "default_ipv4_address",
+			},
+		})
 		vmConnectionBody.SetAttributeTraversal("user", hcl.Traversal{
 			hcl.TraverseRoot{
 				Name: "var",
