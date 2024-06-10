@@ -71,3 +71,6 @@ cluster-config-gen
 # Secrets
 terraform/config.s3.tfbackend
 terraform/terraform.tfvars
+
+# non salvare config.yaml
+config.yaml
