@@ -60,15 +60,6 @@ func main() {
 			host := fmt.Sprintf("k8s-%s-master-%d", cluster.Name, nodeNumber)
 			ip := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, lastIpDigit)
 			gateway := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, cluster.MasterGateway)
-
-			// Print debug information
-			fmt.Println("Debug Info:")
-			fmt.Println("Host:", host)
-			fmt.Println("IP:", ip)
-			fmt.Println("Gateway:", gateway)
-			fmt.Println("TerraformResourceName:", strings.ReplaceAll(host, "-", "_"))
-			fmt.Println("ProxmoxVmName:", strings.ReplaceAll(host, "_", "-"))
-
 			oneCluster.Masters = append(oneCluster.Masters, types.InternalDataMaster{
 				IP:                    ip,
 				Gateway:               gateway,
