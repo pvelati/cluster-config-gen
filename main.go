@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/pvelati/cluster-config-gen/outputfilegeneration"
 	"github.com/pvelati/cluster-config-gen/types"
@@ -38,9 +39,9 @@ func main() {
 	for _, cluster := range config.Clusters {
 		var oneCluster types.InternalDataCluster
 
-		oneCluster.Name = cluster.Name
-		oneCluster.AnsibleMasterGroup = fmt.Sprintf("%s_master", cluster.Name)
-		oneCluster.AnsibleWorkerGroup = fmt.Sprintf("%s_worker", cluster.Name)
+		oneCluster.Name = strings.ReplaceAll(fmt.Sprintf("%s", cluster.Name), "-", "_")
+		oneCluster.AnsibleMasterGroup = strings.ReplaceAll(fmt.Sprintf("%s_master", cluster.Name), "-", "_")
+		oneCluster.AnsibleWorkerGroup = strings.ReplaceAll(fmt.Sprintf("%s_worker", cluster.Name), "-", "_")
 
 		// Verifica che il numero di master sia 1 o 3
 		if cluster.NumMaster != 1 && cluster.NumMaster != 3 {
@@ -59,17 +60,26 @@ func main() {
 			host := fmt.Sprintf("k8s-%s-master-%d", cluster.Name, nodeNumber)
 			ip := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, lastIpDigit)
 			gateway := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, cluster.MasterGateway)
+
+			// Print debug information
+			fmt.Println("Debug Info:")
+			fmt.Println("Host:", host)
+			fmt.Println("IP:", ip)
+			fmt.Println("Gateway:", gateway)
+			fmt.Println("TerraformResourceName:", strings.ReplaceAll(host, "-", "_"))
+			fmt.Println("ProxmoxVmName:", strings.ReplaceAll(host, "_", "-"))
+
 			oneCluster.Masters = append(oneCluster.Masters, types.InternalDataMaster{
 				IP:                    ip,
 				Gateway:               gateway,
 				Host:                  host,
 				Domain:                cluster.MasterDomain,
 				ProxmoxVMID:           cluster.MasterBaseVmid + lastIpDigit,
-				TerraformResourceName: fmt.Sprintf("%s_master_%d", cluster.Name, nodeNumber),
-				ProxmoxVmName:         fmt.Sprintf("%s-master-%d", cluster.Name, nodeNumber),
+				TerraformResourceName: strings.ReplaceAll(host, "-", "_"),
+				ProxmoxVmName:         strings.ReplaceAll(host, "_", "-"),
 				ProxmoxVmDescription:  fmt.Sprintf("master node of kubernetes cluster %s", cluster.Name),
 				ProxmoxVmTags: []string{
-					fmt.Sprintf("k8s_%s", cluster.Name),
+					strings.ReplaceAll(fmt.Sprintf("k8s_%s", cluster.Name), "-", "_"),
 				},
 			})
 		}
@@ -87,11 +97,11 @@ func main() {
 				Host:                  host,
 				Domain:                cluster.WorkerDomain,
 				ProxmoxVMID:           cluster.WorkerBaseVmid + lastIpDigit,
-				TerraformResourceName: fmt.Sprintf("%s_worker_%d", cluster.Name, nodeNumber),
-				ProxmoxVmName:         fmt.Sprintf("%s-worker-%d", cluster.Name, nodeNumber),
+				TerraformResourceName: strings.ReplaceAll(host, "-", "_"),
+				ProxmoxVmName:         strings.ReplaceAll(host, "_", "-"),
 				ProxmoxVmDescription:  fmt.Sprintf("worker node of kubernetes cluster %s", cluster.Name),
 				ProxmoxVmTags: []string{
-					fmt.Sprintf("k8s_%s", cluster.Name),
+					strings.ReplaceAll(fmt.Sprintf("k8s_%s", cluster.Name), "-", "_"),
 				},
 			})
 		}

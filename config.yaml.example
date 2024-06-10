@@ -1,0 +1,30 @@
+---
+clusters:
+  - name: prod
+    num_master: 3
+    num_worker: 2
+    vip: true
+    master_base_vmid: 4000
+    master_address_sans_last_octet: 192.168.10
+    master_last_octet: 121
+    master_gateway: 254
+    master_domain: priv.prod.labnet
+    worker_base_vmid: 5000
+    worker_address_sans_last_octet: 192.168.11
+    worker_last_octet: 131
+    worker_gateway: 1
+    worker_domain: work.prod.labnet
+  - name: dev
+    num_master: 1
+    num_worker: 1
+    vip: false
+    master_base_vmid: 6000
+    master_address_sans_last_octet: 172.18.10
+    master_last_octet: 111
+    master_gateway: 1
+    master_domain: priv.dev.labnet
+    worker_base_vmid: 7000
+    worker_address_sans_last_octet: 172.18.11
+    worker_last_octet: 141
+    worker_gateway: 254
+    worker_domain: work.dev.labnet
