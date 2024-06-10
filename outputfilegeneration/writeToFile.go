@@ -13,14 +13,14 @@ func writeToFile(filename, content string) {
 	dir := filepath.Dir(filename)
 	// Crea la directory se non esiste
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		log.Fatalf("Errore nella creazione della directory: %v", err)
+		log.Fatalf("Failed to create directory: %v", err)
 	}
 
 	// Scrivi il contenuto nel file
 	if err := os.WriteFile(filename, []byte(content), 0644); err != nil {
-		log.Fatalf("Errore nella scrittura del file: %v", err)
+		log.Fatalf("Failed to write file: %v", err)
 	}
 
 	// Stampa un messaggio di successo
-	fmt.Printf("File %s generato con successo.\n", filename)
+	fmt.Printf("File %s generated successfully.\n", filename)
 }

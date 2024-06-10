@@ -60,7 +60,7 @@ func GenerateInventoryYAML(
 	// Conversione dell'inventario in YAML
 	data, err := yaml.Marshal(inventory)
 	if err != nil {
-		log.Fatalf("Errore nel fare il marshal dello YAML: %v", err)
+		log.Fatalf("Failed to marshal YAML: %v", err)
 	}
 
 	// Scrittura dei dati YAML nel file di output
