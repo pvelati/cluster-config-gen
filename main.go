@@ -11,12 +11,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Definire i primi 3 ottetti delle subnet
-const masterSubnet = "192.168.0."
-const workerSubnet = "192.168.1."
-const domain = "home.lab"
-const baseVmID = 4000
-
 func main() {
 	// Leggi il file di configurazione YAML
 	data, err := os.ReadFile("config.yaml")
@@ -27,6 +21,15 @@ func main() {
 	var config types.Config
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		log.Fatalf("Errore nel fare l'unmarshal dello YAML: %v", err)
+	}
+
+	// Verifica che ogni cluster abbia un nome unico
+	nameSet := make(map[string]struct{})
+	for _, cluster := range config.Clusters {
+		if _, exists := nameSet[cluster.Name]; exists {
+			log.Fatalf("Errore! Nome cluster duplicato: %s", cluster.Name)
+		}
+		nameSet[cluster.Name] = struct{}{}
 	}
 
 	var internalData types.InternalData
@@ -53,12 +56,15 @@ func main() {
 		for masterNodeIndex := 0; masterNodeIndex < cluster.NumMaster; masterNodeIndex++ {
 			nodeNumber := masterNodeIndex + 1
 			lastIpDigit := cluster.MasterLastOctet + masterNodeIndex
-			host := fmt.Sprintf("k8s-%s-master-%d.%s", cluster.Name, nodeNumber, domain)
-			ip := fmt.Sprintf("%s%d", masterSubnet, lastIpDigit)
+			host := fmt.Sprintf("k8s-%s-master-%d", cluster.Name, nodeNumber)
+			ip := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, lastIpDigit)
+			gateway := fmt.Sprintf("%s%d", cluster.MasterAddressSansLastOctet, cluster.MasterGateway)
 			oneCluster.Masters = append(oneCluster.Masters, types.InternalDataMaster{
 				IP:                    ip,
+				Gateway:               gateway,
 				Host:                  host,
-				ProxmoxVMID:           baseVmID + lastIpDigit,
+				Domain:                cluster.MasterDomain,
+				ProxmoxVMID:           cluster.MasterBaseVmid + lastIpDigit,
 				TerraformResourceName: fmt.Sprintf("%s_master_%d", cluster.Name, nodeNumber),
 				ProxmoxVmName:         fmt.Sprintf("%s-master-%d", cluster.Name, nodeNumber),
 				ProxmoxVmDescription:  fmt.Sprintf("master node of kubernetes cluster %s", cluster.Name),
@@ -72,12 +78,15 @@ func main() {
 		for workerNodeIndex := 0; workerNodeIndex < cluster.NumWorker; workerNodeIndex++ {
 			nodeNumber := workerNodeIndex + 1
 			lastIpDigit := cluster.WorkerLastOctet + workerNodeIndex
-			host := fmt.Sprintf("k8s-%s-worker-%d.%s", cluster.Name, nodeNumber, domain)
-			ip := fmt.Sprintf("%s%d", workerSubnet, lastIpDigit)
+			host := fmt.Sprintf("k8s-%s-worker-%d", cluster.Name, nodeNumber)
+			ip := fmt.Sprintf("%s.%d", cluster.WorkerAddressSansLastOctet, lastIpDigit)
+			gateway := fmt.Sprintf("%s%d", cluster.WorkerAddressSansLastOctet, cluster.WorkerGateway)
 			oneCluster.Workers = append(oneCluster.Workers, types.InternalDataWorker{
 				IP:                    ip,
+				Gateway:               gateway,
 				Host:                  host,
-				ProxmoxVMID:           baseVmID + lastIpDigit,
+				Domain:                cluster.WorkerDomain,
+				ProxmoxVMID:           cluster.WorkerBaseVmid + lastIpDigit,
 				TerraformResourceName: fmt.Sprintf("%s_worker_%d", cluster.Name, nodeNumber),
 				ProxmoxVmName:         fmt.Sprintf("%s-worker-%d", cluster.Name, nodeNumber),
 				ProxmoxVmDescription:  fmt.Sprintf("worker node of kubernetes cluster %s", cluster.Name),
@@ -93,10 +102,6 @@ func main() {
 	// Genera l'inventario YAML per Ansible
 	outputfilegeneration.GenerateInventoryYAML("ansible/inventory.yaml", internalData)
 
-	// Genera il file di risorse Terraform per ogni cluster
-	//for _, internalDataCluster := range internalData.Clusters {
-	//	outputfilegeneration.GenerateFromTemplate("templates/terraform_template.tf.tmpl", fmt.Sprintf("terraform/%s_resources.tf", internalDataCluster.Name), internalDataCluster)
-	//}
 	// Genera il file di risorse Terraform per ogni cluster
 	for _, internalDataCluster := range internalData.Clusters {
 		outputfilegeneration.GenerateTerraformResource(fmt.Sprintf("terraform/%s_resources.tf", internalDataCluster.Name), internalDataCluster)
