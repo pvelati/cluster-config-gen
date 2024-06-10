@@ -60,10 +60,6 @@ variable "root_disk_size" {
   default = "16G"
 }
 
-variable "gateway" {
-  description = "the ip address of OPNSense for this particular network segment"
-}
-
 variable "nameserver" {
 }
 
@@ -76,7 +72,4 @@ variable "sshkeys" {
 
 variable "private_key" {
   description = "the ssh-key used by the provisioner to ssh into the node to finish the setup"
-}
-
-variable "domain" {
 }
