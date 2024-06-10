@@ -58,7 +58,7 @@ func main() {
 			lastIpDigit := cluster.MasterLastOctet + masterNodeIndex
 			host := fmt.Sprintf("k8s-%s-master-%d", cluster.Name, nodeNumber)
 			ip := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, lastIpDigit)
-			gateway := fmt.Sprintf("%s%d", cluster.MasterAddressSansLastOctet, cluster.MasterGateway)
+			gateway := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, cluster.MasterGateway)
 			oneCluster.Masters = append(oneCluster.Masters, types.InternalDataMaster{
 				IP:                    ip,
 				Gateway:               gateway,
@@ -80,7 +80,7 @@ func main() {
 			lastIpDigit := cluster.WorkerLastOctet + workerNodeIndex
 			host := fmt.Sprintf("k8s-%s-worker-%d", cluster.Name, nodeNumber)
 			ip := fmt.Sprintf("%s.%d", cluster.WorkerAddressSansLastOctet, lastIpDigit)
-			gateway := fmt.Sprintf("%s%d", cluster.WorkerAddressSansLastOctet, cluster.WorkerGateway)
+			gateway := fmt.Sprintf("%s.%d", cluster.WorkerAddressSansLastOctet, cluster.WorkerGateway)
 			oneCluster.Workers = append(oneCluster.Workers, types.InternalDataWorker{
 				IP:                    ip,
 				Gateway:               gateway,
