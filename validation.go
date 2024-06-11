@@ -66,9 +66,6 @@ func validateClusters(clusters []types.Cluster) error {
 		}
 		nameSet[cluster.Name] = struct{}{}
 
-		if cluster.NumMaster != 1 && cluster.NumMaster != 3 {
-			return fmt.Errorf("%s - the number of masters must be 1 or 3", cluster.Name)
-		}
 		if cluster.NumWorker < 1 {
 			return fmt.Errorf("%s - the cluster must have at least 1 worker", cluster.Name)
 		}
@@ -78,41 +75,20 @@ func validateClusters(clusters []types.Cluster) error {
 		if cluster.MasterLastOctet <= 0 || cluster.MasterLastOctet >= 256 {
 			return fmt.Errorf("%s - master_last_octet should be between 1 and 255", cluster.Name)
 		}
-		if cluster.MasterGateway <= 0 || cluster.MasterGateway >= 256 {
-			return fmt.Errorf("%s - master_gateway should be between 1 and 255", cluster.Name)
+		if cluster.MasterGatewayLastOctet <= 0 || cluster.MasterGatewayLastOctet >= 256 {
+			return fmt.Errorf("%s - master_gateway_last_octet should be between 1 and 255", cluster.Name)
 		}
 		if cluster.MasterDomain == "" {
 			return fmt.Errorf("%s - master_domain cannot be empty", cluster.Name)
 		}
-
-		// Worker fallback to Master values if empty
-		if cluster.WorkerBaseVmid == 0 {
-			cluster.WorkerBaseVmid = cluster.MasterBaseVmid
-		}
-		if cluster.WorkerAddressSansLastOctet == "" {
-			cluster.WorkerAddressSansLastOctet = cluster.MasterAddressSansLastOctet
-		}
-		// Check if worker last octet needs to be adjusted based on WorkerAddressSansLastOctet
-		if cluster.WorkerAddressSansLastOctet == cluster.MasterAddressSansLastOctet && cluster.WorkerLastOctet == 0 {
-			cluster.WorkerLastOctet = cluster.MasterLastOctet + cluster.NumMaster
-		} else {
-			cluster.WorkerLastOctet = cluster.MasterLastOctet
-		}
-		if cluster.WorkerGateway == 0 {
-			cluster.WorkerGateway = cluster.MasterGateway
-		}
-		if cluster.WorkerDomain == "" {
-			cluster.WorkerDomain = cluster.MasterDomain
-		}
-
 		if cluster.WorkerBaseVmid < 0 {
 			return fmt.Errorf("%s - worker_base_vmid should be a positive integer", cluster.Name)
 		}
 		if cluster.WorkerLastOctet < 0 || cluster.WorkerLastOctet >= 256 {
 			return fmt.Errorf("%s - worker_last_octet should be between 1 and 255", cluster.Name)
 		}
-		if cluster.WorkerGateway < 0 || cluster.WorkerGateway >= 256 {
-			return fmt.Errorf("%s - worker_gateway should be between 1 and 255", cluster.Name)
+		if cluster.WorkerGatewayLastOctet < 0 || cluster.WorkerGatewayLastOctet >= 256 {
+			return fmt.Errorf("%s - worker_gateway_last_octet should be between 1 and 255", cluster.Name)
 		}
 
 		// Calculate and check IP ranges for masters

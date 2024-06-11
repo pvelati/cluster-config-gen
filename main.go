@@ -39,13 +39,19 @@ func main() {
 		oneCluster.AnsibleMasterGroup = strings.ReplaceAll(fmt.Sprintf("%s_master", cluster.Name), "-", "_")
 		oneCluster.AnsibleWorkerGroup = strings.ReplaceAll(fmt.Sprintf("%s_worker", cluster.Name), "-", "_")
 
+		if cluster.MasterHa {
+			cluster.NumMaster = 3
+		} else {
+			cluster.NumMaster = 1
+		}
+
 		// Genera IP per i master
 		for masterNodeIndex := 0; masterNodeIndex < cluster.NumMaster; masterNodeIndex++ {
 			nodeNumber := masterNodeIndex + 1
 			lastIpDigit := cluster.MasterLastOctet + masterNodeIndex
 			host := fmt.Sprintf("k8s-%s-master-%d", cluster.Name, nodeNumber)
 			ip := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, lastIpDigit)
-			gateway := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, cluster.MasterGateway)
+			gateway := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, cluster.MasterGatewayLastOctet)
 			oneCluster.Masters = append(oneCluster.Masters, types.InternalDataMaster{
 				IP:                    ip,
 				Gateway:               gateway,
@@ -67,7 +73,7 @@ func main() {
 			lastIpDigit := cluster.WorkerLastOctet + workerNodeIndex
 			host := fmt.Sprintf("k8s-%s-worker-%d", cluster.Name, nodeNumber)
 			ip := fmt.Sprintf("%s.%d", cluster.WorkerAddressSansLastOctet, lastIpDigit)
-			gateway := fmt.Sprintf("%s.%d", cluster.WorkerAddressSansLastOctet, cluster.WorkerGateway)
+			gateway := fmt.Sprintf("%s.%d", cluster.WorkerAddressSansLastOctet, cluster.WorkerGatewayLastOctet)
 			oneCluster.Workers = append(oneCluster.Workers, types.InternalDataWorker{
 				IP:                    ip,
 				Gateway:               gateway,
