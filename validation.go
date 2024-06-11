@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net"
 
@@ -8,22 +9,22 @@ import (
 )
 
 // calculateIpRange calculates the range of IPs given a base IP, starting last octet, and count of IPs.
-func calculateIpRange(baseIP string, startOctet, count int) (types.IpRange, error) {
+func calculateIpRange(baseIP string, startOctet, count int) (*types.IpRange, error) {
 	if net.ParseIP(fmt.Sprintf("%s.1", baseIP)) == nil {
-		return types.IpRange{}, fmt.Errorf("invalid base IP: %s", baseIP)
+		return nil, fmt.Errorf("invalid base IP: %s", baseIP)
 	}
 
 	start := net.ParseIP(fmt.Sprintf("%s.%d", baseIP, startOctet))
 	if start == nil {
-		return types.IpRange{}, fmt.Errorf("invalid start IP from base: %s and octet: %d", baseIP, startOctet)
+		return nil, fmt.Errorf("invalid start IP from base: %s and octet: %d", baseIP, startOctet)
 	}
 
 	end := net.ParseIP(fmt.Sprintf("%s.%d", baseIP, startOctet+count-1))
 	if end == nil {
-		return types.IpRange{}, fmt.Errorf("invalid end IP from base: %s and octet: %d", baseIP, startOctet+count-1)
+		return nil, fmt.Errorf("invalid end IP from base: %s and octet: %d", baseIP, startOctet+count-1)
 	}
 
-	return types.IpRange{Start: start, End: end}, nil
+	return &types.IpRange{Start: start, End: end}, nil
 }
 
 // ipLessThan compares two IP addresses and returns true if ip1 is less than ip2.
@@ -40,76 +41,78 @@ func ipLessThan(ip1, ip2 net.IP) bool {
 }
 
 // overlaps checks if two IP ranges overlap.
-func overlaps(r1, r2 types.IpRange) bool {
+func overlaps(r1, r2 *types.IpRange) bool {
 	return !(ipLessThan(r1.End, r2.Start) || ipLessThan(r2.End, r1.Start))
 }
 
 // validateClusters checks the clusters for any configuration issues.
 func validateClusters(clusters []types.Cluster) error {
-	nameSet := make(map[string]struct{})
-	var IpRanges []types.IpRange
+	allErrors := []error{}
+	nameSet := map[string]bool{}
+	var ipRanges []*types.IpRange
 
-	for i := range clusters {
-		cluster := &clusters[i]
-
+	for _, cluster := range clusters {
 		if cluster.Name == "" {
-			return fmt.Errorf("%s - name cannot be empty", cluster.Name)
+			allErrors = append(allErrors, fmt.Errorf("%s - name cannot be empty", cluster.Name))
 		}
-		if _, exists := nameSet[cluster.Name]; exists {
-			return fmt.Errorf("duplicate cluster name: %s", cluster.Name)
+		if nameSet[cluster.Name] {
+			allErrors = append(allErrors, fmt.Errorf("duplicate cluster name: %s", cluster.Name))
 		}
-		nameSet[cluster.Name] = struct{}{}
+		nameSet[cluster.Name] = true
 
 		if cluster.NumWorker < 1 {
-			return fmt.Errorf("%s - the cluster must have at least 1 worker", cluster.Name)
+			allErrors = append(allErrors, fmt.Errorf("%s - the cluster must have at least 1 worker but found %d", cluster.Name, cluster.NumWorker))
 		}
 		if cluster.MasterBaseVmid <= 0 {
-			return fmt.Errorf("%s - master_base_vmid should be a positive integer", cluster.Name)
+			allErrors = append(allErrors, fmt.Errorf("%s - master_base_vmid should be a positive integer but found %d", cluster.Name, cluster.MasterBaseVmid))
 		}
 		if cluster.MasterLastOctet <= 0 || cluster.MasterLastOctet >= 256 {
-			return fmt.Errorf("%s - master_last_octet should be between 1 and 255", cluster.Name)
+			allErrors = append(allErrors, fmt.Errorf("%s - master_last_octet should be between 1 and 255 but found %d", cluster.Name, cluster.MasterLastOctet))
 		}
 		if cluster.MasterGatewayLastOctet <= 0 || cluster.MasterGatewayLastOctet >= 256 {
-			return fmt.Errorf("%s - master_gateway_last_octet should be between 1 and 255", cluster.Name)
+			allErrors = append(allErrors, fmt.Errorf("%s - master_gateway_last_octet should be between 1 and 255 but found %d", cluster.Name, cluster.MasterGatewayLastOctet))
 		}
 		if cluster.MasterDomain == "" {
-			return fmt.Errorf("%s - master_domain cannot be empty", cluster.Name)
+			allErrors = append(allErrors, fmt.Errorf("%s - master_domain cannot be empty", cluster.Name))
 		}
 		if cluster.WorkerBaseVmid < 0 {
-			return fmt.Errorf("%s - worker_base_vmid should be a positive integer", cluster.Name)
+			allErrors = append(allErrors, fmt.Errorf("%s - worker_base_vmid should be a positive integer but found %d", cluster.Name, cluster.WorkerBaseVmid))
 		}
 		if cluster.WorkerLastOctet < 0 || cluster.WorkerLastOctet >= 256 {
-			return fmt.Errorf("%s - worker_last_octet should be between 1 and 255", cluster.Name)
+			allErrors = append(allErrors, fmt.Errorf("%s - worker_last_octet should be between 1 and 255 but found %d", cluster.Name, cluster.WorkerLastOctet))
 		}
 		if cluster.WorkerGatewayLastOctet < 0 || cluster.WorkerGatewayLastOctet >= 256 {
-			return fmt.Errorf("%s - worker_gateway_last_octet should be between 1 and 255", cluster.Name)
+			allErrors = append(allErrors, fmt.Errorf("%s - worker_gateway_last_octet should be between 1 and 255 but found %d", cluster.Name, cluster.WorkerGatewayLastOctet))
 		}
 
 		// Calculate and check IP ranges for masters
 		masterRange, err := calculateIpRange(cluster.MasterAddressSansLastOctet, cluster.MasterLastOctet, cluster.NumMaster)
 		if err != nil {
-			return fmt.Errorf("error calculating master IP range for cluster %s: %v", cluster.Name, err)
+			allErrors = append(allErrors, fmt.Errorf("error calculating master IP range for cluster %s: %v", cluster.Name, err))
 		}
 
 		// Calculate and check IP ranges for workers
 		workerRange, err := calculateIpRange(cluster.WorkerAddressSansLastOctet, cluster.WorkerLastOctet, cluster.NumWorker)
 		if err != nil {
-			return fmt.Errorf("error calculating worker IP range for cluster %s: %v", cluster.Name, err)
+			allErrors = append(allErrors, fmt.Errorf("error calculating worker IP range for cluster %s: %v", cluster.Name, err))
 		}
 
 		// Check for IP range overlaps within the same cluster
 		if overlaps(masterRange, workerRange) {
-			return fmt.Errorf("IP range overlap detected within cluster %s between master and worker nodes", cluster.Name)
+			allErrors = append(allErrors, fmt.Errorf("IP range overlap detected within cluster %s between master and worker nodes", cluster.Name))
 		}
 
 		// Check for IP range overlaps across different clusters
-		for _, existingRange := range IpRanges {
+		for _, existingRange := range ipRanges {
 			if overlaps(masterRange, existingRange) || overlaps(workerRange, existingRange) {
-				return fmt.Errorf("IP range overlap detected in cluster %s", cluster.Name)
+				allErrors = append(allErrors, fmt.Errorf("IP range overlap detected in cluster %s", cluster.Name))
 			}
 		}
 
-		IpRanges = append(IpRanges, masterRange, workerRange)
+		ipRanges = append(ipRanges, masterRange, workerRange)
+	}
+	if len(allErrors) > 0 {
+		return errors.Join(allErrors...)
 	}
 	return nil
 }
