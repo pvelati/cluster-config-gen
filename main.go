@@ -12,64 +12,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func validateClusters(clusters []Cluster) error {
-	nameSet := make(map[string]struct{})
-
-	for _, cluster := range clusters {
-		if cluster.Name == "" {
-			return fmt.Errorf("name cannot be empty")
-		}
-		if _, exists := nameSet[cluster.Name]; exists {
-			return fmt.Errorf("duplicate cluster name: %s", cluster.Name)
-		}
-		nameSet[cluster.Name] = struct{}{}
-
-		if cluster.NumMaster != 1 && cluster.NumMaster != 3 {
-			return fmt.Errorf("the number of masters in the %s cluster must be 1 or 3", cluster.Name)
-		}
-		if cluster.NumWorker < 1 {
-			return fmt.Errorf("the %s cluster must have at least 1 worker", cluster.Name)
-		}
-		if cluster.MasterBaseVmid <= 0 {
-			return fmt.Errorf("master_base_vmid should be a positive integer")
-		}
-		if cluster.MasterLastOctet <= 0 || cluster.MasterLastOctet >= 256 {
-			return fmt.Errorf("master_last_octet should be between 1 and 255")
-		}
-		if cluster.MasterGateway <= 0 || cluster.MasterGateway >= 256 {
-			return fmt.Errorf("master_gateway should be between 1 and 255")
-		}
-
-		// Worker fallback to Master values if empty
-		if cluster.WorkerBaseVmid == 0 {
-			cluster.WorkerBaseVmid = cluster.MasterBaseVmid
-		}
-		if cluster.WorkerAddressSansLastOctet == "" {
-			cluster.WorkerAddressSansLastOctet = cluster.MasterAddressSansLastOctet
-		}
-		if cluster.WorkerLastOctet == 0 {
-			cluster.WorkerLastOctet = cluster.MasterLastOctet
-		}
-		if cluster.WorkerGateway == 0 {
-			cluster.WorkerGateway = cluster.MasterGateway
-		}
-		if cluster.WorkerDomain == "" {
-			cluster.WorkerDomain = cluster.MasterDomain
-		}
-
-		if cluster.WorkerBaseVmid <= 0 {
-			return fmt.Errorf("worker_base_vmid should be a positive integer")
-		}
-		if cluster.WorkerLastOctet <= 0 || cluster.WorkerLastOctet >= 256 {
-			return fmt.Errorf("worker_last_octet should be between 1 and 255")
-		}
-		if cluster.WorkerGateway <= 0 || cluster.WorkerGateway >= 256 {
-			return fmt.Errorf("worker_gateway should be between 1 and 255")
-		}
-	}
-	return nil
-}
-
 func main() {
 	// Leggi il file di configurazione YAML
 	data, err := os.ReadFile("config.yaml")
