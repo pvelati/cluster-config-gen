@@ -2,13 +2,58 @@ package main
 
 import (
 	"fmt"
+	"net"
 
 	"github.com/pvelati/cluster-config-gen/types"
 )
 
+// ipRange represents a range of IPs.
+type ipRange struct {
+	start net.IP
+	end   net.IP
+}
+
+// calculateIPRange calculates the range of IPs given a base IP, starting last octet, and count of IPs.
+func calculateIPRange(baseIP string, startOctet, count int) (ipRange, error) {
+	if net.ParseIP(fmt.Sprintf("%s.1", baseIP)) == nil {
+		return ipRange{}, fmt.Errorf("invalid base IP: %s", baseIP)
+	}
+
+	start := net.ParseIP(fmt.Sprintf("%s.%d", baseIP, startOctet))
+	if start == nil {
+		return ipRange{}, fmt.Errorf("invalid start IP from base: %s and octet: %d", baseIP, startOctet)
+	}
+
+	end := net.ParseIP(fmt.Sprintf("%s.%d", baseIP, startOctet+count-1))
+	if end == nil {
+		return ipRange{}, fmt.Errorf("invalid end IP from base: %s and octet: %d", baseIP, startOctet+count-1)
+	}
+
+	return ipRange{start: start, end: end}, nil
+}
+
+// ipLessThan compares two IP addresses and returns true if ip1 is less than ip2.
+func ipLessThan(ip1, ip2 net.IP) bool {
+	for i := 0; i < len(ip1); i++ {
+		if ip1[i] < ip2[i] {
+			return true
+		}
+		if ip1[i] > ip2[i] {
+			return false
+		}
+	}
+	return false
+}
+
+// overlaps checks if two IP ranges overlap.
+func overlaps(r1, r2 ipRange) bool {
+	return !(ipLessThan(r1.end, r2.start) || ipLessThan(r2.end, r1.start))
+}
+
 // validateClusters checks the clusters for any configuration issues.
 func validateClusters(clusters []types.Cluster) error {
 	nameSet := make(map[string]struct{})
+	ipRanges := []ipRange{}
 
 	for i := range clusters {
 		cluster := &clusters[i]
@@ -66,6 +111,27 @@ func validateClusters(clusters []types.Cluster) error {
 		if cluster.WorkerGateway < 0 || cluster.WorkerGateway >= 256 {
 			return fmt.Errorf("%s - worker_gateway should be between 1 and 255", cluster.Name)
 		}
+
+		// Calculate and check IP ranges for masters
+		masterRange, err := calculateIPRange(cluster.MasterAddressSansLastOctet, cluster.MasterLastOctet, cluster.NumMaster)
+		if err != nil {
+			return fmt.Errorf("error calculating master IP range for cluster %s: %v", cluster.Name, err)
+		}
+
+		// Calculate and check IP ranges for workers
+		workerRange, err := calculateIPRange(cluster.WorkerAddressSansLastOctet, cluster.WorkerLastOctet, cluster.NumWorker)
+		if err != nil {
+			return fmt.Errorf("error calculating worker IP range for cluster %s: %v", cluster.Name, err)
+		}
+
+		// Check for IP range overlaps
+		for _, existingRange := range ipRanges {
+			if overlaps(masterRange, existingRange) || overlaps(workerRange, existingRange) {
+				return fmt.Errorf("IP range overlap detected in cluster %s", cluster.Name)
+			}
+		}
+
+		ipRanges = append(ipRanges, masterRange, workerRange)
 	}
 	return nil
 }
