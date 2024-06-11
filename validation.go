@@ -57,14 +57,14 @@ func validateClusters(clusters []types.Cluster) error {
 			cluster.WorkerDomain = cluster.MasterDomain
 		}
 
-		if cluster.WorkerBaseVmid <= 0 {
-			return fmt.Errorf("worker_base_vmid should be a positive integer")
+		if cluster.WorkerBaseVmid < 0 {
+			return fmt.Errorf("%s - worker_base_vmid should be a positive integer", cluster.Name)
 		}
-		if cluster.WorkerLastOctet <= 0 || cluster.WorkerLastOctet >= 256 {
-			return fmt.Errorf("worker_last_octet should be between 1 and 255")
+		if cluster.WorkerLastOctet < 0 || cluster.WorkerLastOctet >= 256 {
+			return fmt.Errorf("%s - worker_last_octet should be between 1 and 255", cluster.Name)
 		}
-		if cluster.WorkerGateway <= 0 || cluster.WorkerGateway >= 256 {
-			return fmt.Errorf("worker_gateway should be between 1 and 255")
+		if cluster.WorkerGateway < 0 || cluster.WorkerGateway >= 256 {
+			return fmt.Errorf("%s - worker_gateway should be between 1 and 255", cluster.Name)
 		}
 	}
 	return nil
