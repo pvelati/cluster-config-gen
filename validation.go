@@ -92,7 +92,10 @@ func validateClusters(clusters []types.Cluster) error {
 		if cluster.WorkerAddressSansLastOctet == "" {
 			cluster.WorkerAddressSansLastOctet = cluster.MasterAddressSansLastOctet
 		}
-		if cluster.WorkerLastOctet == 0 {
+		// Check if worker last octet needs to be adjusted based on WorkerAddressSansLastOctet
+		if cluster.WorkerAddressSansLastOctet == cluster.MasterAddressSansLastOctet && cluster.WorkerLastOctet == 0 {
+			cluster.WorkerLastOctet = cluster.MasterLastOctet + cluster.NumMaster
+		} else {
 			cluster.WorkerLastOctet = cluster.MasterLastOctet
 		}
 		if cluster.WorkerGateway == 0 {
@@ -124,7 +127,12 @@ func validateClusters(clusters []types.Cluster) error {
 			return fmt.Errorf("error calculating worker IP range for cluster %s: %v", cluster.Name, err)
 		}
 
-		// Check for IP range overlaps
+		// Check for IP range overlaps within the same cluster
+		if overlaps(masterRange, workerRange) {
+			return fmt.Errorf("IP range overlap detected within cluster %s between master and worker nodes", cluster.Name)
+		}
+
+		// Check for IP range overlaps across different clusters
 		for _, existingRange := range ipRanges {
 			if overlaps(masterRange, existingRange) || overlaps(workerRange, existingRange) {
 				return fmt.Errorf("IP range overlap detected in cluster %s", cluster.Name)
