@@ -18,13 +18,13 @@ func GenerateTerraformResource(outputFile string, internalDataCluster types.Inte
 	// Ottieni il corpo principale del file
 	body := f.Body()
 
-	// Aggiungi le risorse Terraform per i master
-	for _, master := range internalDataCluster.Masters {
-		vm := body.AppendNewBlock("resource", []string{"proxmox_vm_qemu", master.TerraformResourceName})
+	// Aggiungi le risorse Terraform per tutti i nodi (master e worker)
+	for _, node := range append(internalDataCluster.Masters, internalDataCluster.Workers...) {
+		vm := body.AppendNewBlock("resource", []string{"proxmox_vm_qemu", node.TerraformResourceName})
 		vmBody := vm.Body()
-		vmBody.SetAttributeValue("name", cty.StringVal(master.ProxmoxVmName))
-		vmBody.SetAttributeValue("desc", cty.StringVal(master.ProxmoxVmDescription))
-		vmBody.SetAttributeValue("vmid", cty.NumberIntVal(int64(master.ProxmoxVMID)))
+		vmBody.SetAttributeValue("name", cty.StringVal(node.ProxmoxVmName))
+		vmBody.SetAttributeValue("desc", cty.StringVal(node.ProxmoxVmDescription))
+		vmBody.SetAttributeValue("vmid", cty.NumberIntVal(int64(node.ProxmoxVMID)))
 		vmBody.SetAttributeValue("full_clone", cty.BoolVal(true))
 		vmBody.SetAttributeValue("agent", cty.NumberIntVal(1))
 		vmBody.SetAttributeTraversal("target_node", hcl.Traversal{
@@ -41,7 +41,7 @@ func GenerateTerraformResource(outputFile string, internalDataCluster types.Inte
 		vmBody.SetAttributeValue("sockets", cty.NumberIntVal(1))
 		vmBody.SetAttributeValue("cpu", cty.StringVal("host"))
 		vmBody.SetAttributeValue("scsihw", cty.StringVal("virtio-scsi-single"))
-		vmBody.SetAttributeValue("tags", cty.StringVal("debian;"+strings.Join(master.ProxmoxVmTags, ";")))
+		vmBody.SetAttributeValue("tags", cty.StringVal("debian;"+strings.Join(node.ProxmoxVmTags, ";")))
 		vmBody.AppendNewline()
 
 		vmNetwork := vmBody.AppendNewBlock("network", nil)
@@ -92,8 +92,8 @@ func GenerateTerraformResource(outputFile string, internalDataCluster types.Inte
 		}
 		vmBody.AppendUnstructuredTokens(commentCloudinit)
 		vmBody.SetAttributeValue("os_type", cty.StringVal("cloud-init"))
-		vmBody.SetAttributeValue("ipconfig0", cty.StringVal("ip="+master.IP+"/24,gw="+master.Gateway))
-		vmBody.SetAttributeValue("searchdomain", cty.StringVal(master.Domain))
+		vmBody.SetAttributeValue("ipconfig0", cty.StringVal("ip="+node.IP+"/24,gw="+node.Gateway))
+		vmBody.SetAttributeValue("searchdomain", cty.StringVal(node.Domain))
 		vmBody.SetAttributeTraversal("nameserver", hcl.Traversal{
 			hcl.TraverseRoot{
 				Name: "var",
@@ -162,9 +162,6 @@ func GenerateTerraformResource(outputFile string, internalDataCluster types.Inte
 			cty.StringVal("sudo shutdown -r +0"),
 		}))
 	}
-
-	// manca la parte per i worker, ma prima voglio fare quella dei master, se va bene poi copincollo
-	// oppure ciclare usando il blocco precendente con if master/worker e mettergli dentro i valori?
 
 	// Scrittura dei dati YAML nel file di output
 	writeToFile(outputFile, string(f.Bytes()))
