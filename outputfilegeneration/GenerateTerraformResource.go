@@ -20,6 +20,14 @@ func GenerateTerraformResource(outputFile string, internalDataCluster types.Inte
 
 	// Aggiungi le risorse Terraform per tutti i nodi (master e worker)
 	for _, node := range append(internalDataCluster.Masters, internalDataCluster.Workers...) {
+		dns := body.AppendNewBlock("resource", []string{"opnsense_unbound_host_override", node.TerraformResourceName + "_dns"})
+		dnsBody := dns.Body()
+		dnsBody.SetAttributeValue("enabled", cty.BoolVal(true))
+		dnsBody.SetAttributeValue("description", cty.StringVal(node.ProxmoxVmDescription))
+		dnsBody.SetAttributeValue("hostname", cty.StringVal(node.ProxmoxVmName))
+		dnsBody.SetAttributeValue("domain", cty.StringVal(node.Domain))
+		dnsBody.SetAttributeValue("server", cty.StringVal(node.IP))
+
 		vm := body.AppendNewBlock("resource", []string{"proxmox_vm_qemu", node.TerraformResourceName})
 		vmBody := vm.Body()
 		vmBody.SetAttributeValue("name", cty.StringVal(node.ProxmoxVmName))
