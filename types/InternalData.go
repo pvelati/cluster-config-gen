@@ -15,36 +15,6 @@ type InternalDataCluster struct {
 	AnsibleWorkerGroup string
 }
 
-// // InternalDataMaster rappresenta i dati di un master node all'interno di un cluster.
-// type InternalDataMaster struct {
-// 	Host    string
-// 	Domain  string
-// 	IP      string
-// 	Gateway string
-
-// 	ProxmoxVMID          int
-// 	ProxmoxVmName        string
-// 	ProxmoxVmDescription string
-// 	ProxmoxVmTags        []string
-
-// 	TerraformResourceName string
-// }
-
-// // InternalDataWorker rappresenta i dati di un worker node all'interno di un cluster.
-// type InternalDataWorker struct {
-// 	Host    string
-// 	Domain  string
-// 	IP      string
-// 	Gateway string
-
-// 	ProxmoxVMID          int
-// 	ProxmoxVmName        string
-// 	ProxmoxVmDescription string
-// 	ProxmoxVmTags        []string
-
-// 	TerraformResourceName string
-// }
-
 // InternalDataNode rappresenta i dati di un nodo generico all'interno di un cluster.
 type InternalDataNode struct {
 	Host    string
