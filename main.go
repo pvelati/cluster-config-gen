@@ -52,7 +52,7 @@ func main() {
 			host := fmt.Sprintf("k8s-%s-master-%d", cluster.Name, nodeNumber)
 			ip := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, lastIpDigit)
 			gateway := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, cluster.MasterGatewayLastOctet)
-			oneCluster.Masters = append(oneCluster.Masters, types.InternalDataMaster{
+			oneCluster.Masters = append(oneCluster.Masters, types.InternalDataNode{
 				IP:                    ip,
 				Gateway:               gateway,
 				Host:                  host,
@@ -74,7 +74,7 @@ func main() {
 			host := fmt.Sprintf("k8s-%s-worker-%d", cluster.Name, nodeNumber)
 			ip := fmt.Sprintf("%s.%d", cluster.WorkerAddressSansLastOctet, lastIpDigit)
 			gateway := fmt.Sprintf("%s.%d", cluster.WorkerAddressSansLastOctet, cluster.WorkerGatewayLastOctet)
-			oneCluster.Workers = append(oneCluster.Workers, types.InternalDataWorker{
+			oneCluster.Workers = append(oneCluster.Workers, types.InternalDataNode{
 				IP:                    ip,
 				Gateway:               gateway,
 				Host:                  host,
