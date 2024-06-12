@@ -41,14 +41,20 @@ func main() {
 
 		if cluster.MasterHa {
 			cluster.NumMaster = 3
+			oneCluster.Ha = true
+			oneCluster.HaIp = fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, cluster.MasterLastOctet)
 		} else {
 			cluster.NumMaster = 1
+			oneCluster.Ha = false
 		}
 
 		// Genera IP per i master
 		for masterNodeIndex := 0; masterNodeIndex < cluster.NumMaster; masterNodeIndex++ {
 			nodeNumber := masterNodeIndex + 1
 			lastIpDigit := cluster.MasterLastOctet + masterNodeIndex
+			if cluster.MasterHa {
+				lastIpDigit++
+			}
 			host := fmt.Sprintf("k8s-%s-master-%d", cluster.Name, nodeNumber)
 			ip := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, lastIpDigit)
 			gateway := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, cluster.MasterGatewayLastOctet)

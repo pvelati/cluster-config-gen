@@ -52,6 +52,13 @@ func validateClusters(clusters []types.Cluster) error {
 	var ipRanges []*types.IpRange
 
 	for _, cluster := range clusters {
+
+		if cluster.MasterHa {
+			cluster.NumMaster = 4 //3 masters + 1 vip
+		} else {
+			cluster.NumMaster = 1
+		}
+
 		if cluster.Name == "" {
 			allErrors = append(allErrors, fmt.Errorf("%s - name cannot be empty", cluster.Name))
 		}

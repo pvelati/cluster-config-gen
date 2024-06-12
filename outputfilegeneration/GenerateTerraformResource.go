@@ -18,6 +18,17 @@ func GenerateTerraformResource(outputFile string, internalDataCluster types.Inte
 	// Ottieni il corpo principale del file
 	body := f.Body()
 
+	// Aggiungi la entry del vip se definito nella config
+	if internalDataCluster.Ha {
+		dnsvip := body.AppendNewBlock("resource", []string{"opnsense_unbound_host_override", internalDataCluster.Name})
+		dnsvipBody := dnsvip.Body()
+		dnsvipBody.SetAttributeValue("enabled", cty.BoolVal(true))
+		dnsvipBody.SetAttributeValue("description", cty.StringVal(internalDataCluster.Name+" VIP address"))
+		dnsvipBody.SetAttributeValue("hostname", cty.StringVal("k8s-"+internalDataCluster.Name+"-vip"))
+		dnsvipBody.SetAttributeValue("domain", cty.StringVal(internalDataCluster.Masters[0].Domain))
+		dnsvipBody.SetAttributeValue("server", cty.StringVal(internalDataCluster.HaIp))
+	}
+
 	// Aggiungi le risorse Terraform per tutti i nodi (master e worker)
 	for _, node := range append(internalDataCluster.Masters, internalDataCluster.Workers...) {
 		dns := body.AppendNewBlock("resource", []string{"opnsense_unbound_host_override", node.TerraformResourceName + "_dns"})

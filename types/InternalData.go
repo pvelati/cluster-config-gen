@@ -10,6 +10,8 @@ type InternalDataCluster struct {
 	Name    string
 	Masters []InternalDataNode
 	Workers []InternalDataNode
+	Ha      bool
+	HaIp    string
 
 	AnsibleMasterGroup string
 	AnsibleWorkerGroup string
