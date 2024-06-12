@@ -63,6 +63,7 @@ terraform.rc
 
 # non salvare output per ora
 ansible/inventory.yaml
+ansible/group_vars/*
 terraform/*_resources.tf
 
 # non salvare l'eseguibile finale

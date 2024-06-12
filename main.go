@@ -101,8 +101,9 @@ func main() {
 	// Genera l'inventario YAML per Ansible
 	outputfilegeneration.GenerateInventoryYAML("ansible/inventory.yaml", internalData)
 
-	// Genera il file di risorse Terraform per ogni cluster
+	// Genera i group_vars Ansible e risorse Terraform per ogni cluster
 	for _, internalDataCluster := range internalData.Clusters {
+		outputfilegeneration.GenerateGroupVarsYAML(fmt.Sprintf("ansible/group_vars/%s.yaml", internalDataCluster.Name), internalDataCluster)
 		outputfilegeneration.GenerateTerraformResource(fmt.Sprintf("terraform/%s_resources.tf", internalDataCluster.Name), internalDataCluster)
 	}
 }

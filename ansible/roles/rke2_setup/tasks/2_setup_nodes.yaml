@@ -23,7 +23,7 @@
     ansible.builtin.shell:
       cmd: /tmp/install.sh
       executable: /bin/sh
-    when: "'rke2_master' in group_names"
+    when: "'*_master' in group_names"
 
   - name: Install rke2 agent on worker nodes (rinominare in altro?)
     ansible.builtin.shell:
@@ -31,13 +31,13 @@
       executable: /bin/sh
     environment:
       INSTALL_RKE2_TYPE: 'agent'
-    when: "'rke2_worker' in group_names"
+    when: "'*_worker' in group_names"
 
   when: not rke2_binary.stat.exists
 
 - name: Setup first master node
   block:
-  - name: Download kube-vip RBAC manifest from internet
+  - name: Download kube-vip RBAC manifest from internet - rifare senza dipendenze esterne
     ansible.builtin.uri:
       url: 'https://kube-vip.io/manifests/rbac.yaml'
       dest: '/var/lib/rancher/rke2/server/manifests/kube-vip-rbac.yaml'
@@ -69,7 +69,7 @@
       enabled: yes
       state: started
 
-  when: "'rke2_master' in group_names and inventory_hostname == groups['rke2_master'][0]"
+  when: "'*_master' in group_names and inventory_hostname == groups['*_master'][0]"
 
 - name: Wait for Kubernetes API to become available
   ansible.builtin.wait_for:
@@ -104,11 +104,11 @@
       cmd: 'source {{ ansible_env.HOME }}/.bashrc'
       executable: /bin/bash
     when: bashrc_updates.changed
-  when: "'rke2_master' in group_names"
+  when: "'*_master' in group_names"
 
 - name: Enable and start rke2-agent systemd unit on all worker nodes
   systemd:
     name: rke2-agent.service
     enabled: yes
     state: started
-  when: "'rke2_worker' in group_names"
+  when: "'*_worker' in group_names"
