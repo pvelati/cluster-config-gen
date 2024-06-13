@@ -1,12 +1,33 @@
 #!/usr/bin/env ansible-playbook
 ---
+- name: Move hosts from {{ cluster_name }}_master to cluster_master
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Add hosts to cluster_master group
+      add_host:
+        name: "{{ item }}"
+        groups: cluster_master
+      loop: "{{ groups[cluster_name + '_master'] }}"
+
+- name: Move hosts from {{ cluster_name }}_worker to cluster_worker
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Add hosts to cluster_worker group
+      add_host:
+        name: "{{ item }}"
+        groups: cluster_worker
+      loop: "{{ groups[cluster_name + '_worker'] }}"
+
 - name: Setup {{ cluster_name }} cluster
   collections:
     - kubernetes.core
   hosts:
-    - "{{ cluster_name }}_master"
-    - "{{ cluster_name }}_worker"
+    - "cluster_master"
+    - "cluster_worker"
+  gather_facts: true
   become: true
-  
+
   roles:
     - rke2_setup

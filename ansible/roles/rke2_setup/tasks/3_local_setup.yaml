@@ -4,7 +4,7 @@
 #     src: "/etc/rancher/rke2/rke2.yaml"
 #     dest: "{{ lookup('env','HOME') }}/{{ active_kubeconfig_file }}"
 #     flat: true
-#   delegate_to: "{{ groups['rke2_master'][0] }}"
+#   delegate_to: "{{ groups['{{ cluster_name }}_master'][0] }}"
 
 # - name: Replace localhost IP address with hostname
 #   ansible.builtin.replace:
@@ -21,13 +21,13 @@
 #         name: "{{ hostvars[item]['ansible_hostname'] }}"
 #         labels:
 #           node-role.kubernetes.io/worker: "true"
-#   loop: "{{ groups['rke2_worker'] }}"
+#   loop: "{{ groups['{{ cluster_name }}_worker'] }}"
 
-# Bootstrap Flux
-- name: Bootstrap cluster on already existing git repository
-  ansible.builtin.shell:
-    cmd: "/usr/local/bin/flux bootstrap github --owner={{ github_user }} --repository={{ github_repository }} --path={{ github_repo_path }} --personal"
-    executable: /bin/bash
-  environment:
-    GITHUB_TOKEN: '{{ github_token }}'
-    KUBECONFIG: "{{ lookup('env','HOME') }}/{{ active_kubeconfig_file }}"
+# # Bootstrap Flux
+# - name: Bootstrap cluster on already existing git repository
+#   ansible.builtin.shell:
+#     cmd: "/usr/local/bin/flux bootstrap github --owner={{ github_user }} --repository={{ github_repository }} --path={{ github_repo_path }} --personal"
+#     executable: /bin/bash
+#   environment:
+#     GITHUB_TOKEN: '{{ github_token }}'
+#     KUBECONFIG: "{{ lookup('env','HOME') }}/{{ active_kubeconfig_file }}"
