@@ -55,8 +55,8 @@ func GenerateTerraformResource(outputFile string, internalDataCluster types.Inte
 			},
 		})
 		vmBody.SetAttributeValue("clone", cty.StringVal("deb12-template"))
-		vmBody.SetAttributeValue("cores", cty.NumberIntVal(1))
-		vmBody.SetAttributeValue("memory", cty.NumberIntVal(1024))
+		vmBody.SetAttributeValue("cores", cty.NumberIntVal(2))
+		vmBody.SetAttributeValue("memory", cty.NumberIntVal(4096))
 		vmBody.SetAttributeValue("sockets", cty.NumberIntVal(1))
 		vmBody.SetAttributeValue("cpu", cty.StringVal("host"))
 		vmBody.SetAttributeValue("scsihw", cty.StringVal("virtio-scsi-single"))

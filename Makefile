@@ -9,4 +9,5 @@ run:
 clear:
 	rm cluster-config-gen
 	rm ansible/inventory.yaml
+	rm ansible/group_vars/*.yaml
 	rm terraform/*_resources.tf

@@ -15,7 +15,7 @@ func GenerateGroupVarsYAML(
 	internalDataCluster types.InternalDataCluster, // Dati interni dei cluster per la generazione dell'inventario
 ) {
 
-	// Creazione della mappa per memorizzare i dati YAML
+	// Creazione della mappa per memorizzare i dati YAML prendendoli in input
 	yamlGroupVars := map[string]interface{}{
 		"registry_mirror":            false,
 		"container_registry_address": "192.168.10.100",
