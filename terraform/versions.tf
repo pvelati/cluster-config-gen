@@ -6,7 +6,7 @@ terraform {
     }
     proxmox = {
       source  = "registry.terraform.io/telmate/proxmox"
-      version = "3.0.1-rc2"
+      version = "3.0.1-rc3"
     }
   }
 }
