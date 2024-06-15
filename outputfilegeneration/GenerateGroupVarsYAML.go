@@ -19,7 +19,7 @@ func GenerateGroupVarsYAML(
 	yamlGroupVars := map[string]interface{}{
 		"registry_mirror":            false,
 		"container_registry_address": "192.168.10.100",
-		"cluster_token":              fmt.Sprintf("%x", sha256.Sum256([]byte(internalDataCluster.Name))),
+		"cluster_token":              fmt.Sprintf("%x", sha256.Sum256([]byte(internalDataCluster.Name)))[:15],
 		"services_vip_address":       "192.168.10.120",
 		"services_range_start":       "192.168.10.121",
 		"services_range_end":         "192.168.10.122",

@@ -1,0 +1,26 @@
+---
+- name: Pre-req on all nodes
+  ansible.builtin.import_tasks: prerequisites.yaml
+  tags: prereq
+
+- name: Setup nodes
+  ansible.builtin.import_tasks: generate_config.yaml
+  tags: config
+
+- name: Setup nodes
+  ansible.builtin.import_tasks: setup_nodes.yaml
+  tags: node_setup
+
+# - name: Local setup cluster
+#   become: false
+#   ansible.builtin.import_tasks: local_setup.yaml
+#   run_once: true
+#   delegate_to: localhost
+#   tags: local_setup
+
+# - name: Bootstrap Flux
+#   become: false
+#   ansible.builtin.import_tasks: bootstrap_flux.yaml
+#   run_once: true
+#   delegate_to: localhost
+#   tags: bootstrap_flux

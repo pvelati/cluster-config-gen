@@ -1,0 +1,111 @@
+---
+- name: Check if k3s executable exists on nodes
+  ansible.builtin.stat:
+    path: /usr/local/bin/k3s
+  register: k3s_binary
+
+- name: Download and install k3s binary on nodes
+  block:
+  - name: Download k3s install script and set executable permissions
+    ansible.builtin.uri:
+      url: https://get.k3s.io
+      dest: /tmp/install.sh
+      mode: 'u+x'
+      creates: /tmp/install.sh
+
+  - name: Install k3s server on master nodes (rinominare in control-plane?)
+    ansible.builtin.shell:
+      cmd: /tmp/install.sh
+      executable: /bin/sh
+    environment:
+      INSTALL_K3S_EXEC: 'server'
+    when: "'cluster_master' in group_names"
+
+  - name: Install k3s agent on worker nodes
+    ansible.builtin.shell:
+      cmd: /tmp/install.sh
+      executable: /bin/sh
+    environment:
+      INSTALL_K3S_EXEC: 'agent'
+    when: "'cluster_worker' in group_names"
+
+  when: not k3s_binary.stat.exists
+
+- name: Setup first master node
+  block:
+#   - name: Download kube-vip RBAC manifest from internet - rifare senza dipendenze esterne
+#     ansible.builtin.uri:
+#       url: 'https://kube-vip.io/manifests/rbac.yaml'
+#       dest: '/var/lib/rancher/k3s/server/manifests/kube-vip-rbac.yaml'
+#       mode: '0755'
+#       creates: '/var/lib/rancher/k3s/server/manifests/kube-vip-rbac.yaml'
+
+  # - name: Copy static files
+  #   ansible.builtin.copy:
+  #     src: 'manifests/{{ item }}'
+  #     dest: '/var/lib/rancher/k3s/server/manifests/{{ item }}'
+  #     mode: '0755'
+  #   loop:
+  #     - k3s-canal-config.yaml
+  #     - k3s-coredns-config.yaml
+  #     - kube-vip-ds-services.yaml
+  
+  # - name: Copy template files
+  #   ansible.builtin.template:
+  #     src: 'manifests/{{ item }}.j2'
+  #     dest: '/var/lib/rancher/k3s/server/manifests/{{ item }}'
+  #     mode: '0755'
+  #   loop:
+  #     - kube-vip-ds-controlplane.yaml
+  #     # - k3s-ingress-nginx-config.yaml
+  #   when: cluster_vip_fqdn is defined
+
+  - name: Enable and start k3s-server systemd unit on first master nodes
+    systemd:
+      name: k3s.service
+      enabled: yes
+      state: started
+
+  when: "'cluster_master' in group_names and inventory_hostname == groups['cluster_master'][0]"
+
+- name: Wait for Kubernetes API to become available from first worker
+  ansible.builtin.wait_for:
+    host: "{{ cluster_vip_fqdn }}"  
+    port: 6443
+    connect_timeout: 5
+    delay: 5
+    timeout: 60
+  run_once: true
+  delegate_to: "{{ groups['cluster_worker'] | first }}"
+
+- name: Start all masters and configure kubectl and environment variables on all masters
+  block:
+  - name: Enable and start k3s-server systemd unit on other master nodes
+    systemd:
+      name: k3s.service
+      enabled: yes
+      state: started
+
+  - name: Add lines in bashrc
+    ansible.builtin.lineinfile:
+      path: "{{ ansible_env.HOME }}/.bashrc"
+      line: "{{ item }}"
+    loop:
+      - "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml"
+      - "export PATH=${PATH}:/var/lib/rancher/k3s/bin"
+      - "alias k=kubectl"
+    register: bashrc_updates
+
+  - name: Reload .bashrc file
+    ansible.builtin.shell:
+      cmd: 'source {{ ansible_env.HOME }}/.bashrc'
+      executable: /bin/bash
+    when: bashrc_updates.changed
+  when: "'cluster_master' in group_names"
+
+- name: Enable and start k3s-agent systemd unit on all worker nodes
+  systemd:
+    name: k3s-agent.service
+    enabled: yes
+    state: started
+  when: "'cluster_worker' in group_names"

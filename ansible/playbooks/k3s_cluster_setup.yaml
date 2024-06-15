@@ -20,7 +20,7 @@
         groups: cluster_worker
       loop: "{{ groups[cluster_name + '_worker'] }}"
 
-- name: Setup {{ cluster_name }} cluster with rke2
+- name: Setup {{ cluster_name }} cluster with k3s
   collections:
     - kubernetes.core
   hosts:
@@ -30,4 +30,4 @@
   become: true
 
   roles:
-    - rke2_setup
+    - k3s_setup
