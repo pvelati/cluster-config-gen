@@ -9,7 +9,6 @@
         name: "{{ item }}"
         groups: cluster_master
       loop: "{{ groups[cluster_name + '_master'] }}"
-      changed_when: false
 
 - name: Move hosts from {{ cluster_name }}_worker to cluster_worker
   hosts: localhost
@@ -20,9 +19,8 @@
         name: "{{ item }}"
         groups: cluster_worker
       loop: "{{ groups[cluster_name + '_worker'] }}"
-      changed_when: false
 
-- name: Setup {{ cluster_name }} cluster with k3s
+- name: Uninstall cluster from {{ cluster_name }} nodes
   collections:
     - kubernetes.core
   hosts:
@@ -30,8 +28,6 @@
     - "cluster_worker"
   gather_facts: true
   become: true
-  vars_files:
-    - ../vars/k3s.yaml
 
   roles:
-    - k3s_setup
+    - uninstall_cluster

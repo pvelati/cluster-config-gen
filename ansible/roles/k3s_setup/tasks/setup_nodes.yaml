@@ -18,7 +18,9 @@
       cmd: /tmp/install.sh
       executable: /bin/sh
     environment:
-      INSTALL_K3S_EXEC: 'server'
+      INSTALL_K3S_EXEC: "server"
+      INSTALL_K3S_SKIP_START: "true"
+      INSTALL_K3S_CHANNEL: "{{ k3s_channel }}"
     when: "'cluster_master' in group_names"
 
   - name: Install k3s agent on worker nodes
@@ -27,6 +29,8 @@
       executable: /bin/sh
     environment:
       INSTALL_K3S_EXEC: 'agent'
+      INSTALL_K3S_SKIP_START: 'true'
+      INSTALL_K3S_CHANNEL: "{{ k3s_channel }}"
     when: "'cluster_worker' in group_names"
 
   when: not k3s_binary.stat.exists

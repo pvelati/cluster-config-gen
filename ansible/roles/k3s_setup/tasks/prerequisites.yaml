@@ -1,12 +1,12 @@
 ---
-- name: Create rke2 directories if they do not exist
+- name: Create k3s directories if they do not exist
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: '0755'
   loop:
     - '/etc/rancher/k3s/'
-    - '/var/lib/rancher/rke2/server/manifests/'
+    - '/var/lib/rancher/k3s/server/manifests/'
 
 - name: Remove zram
   ansible.builtin.apt:

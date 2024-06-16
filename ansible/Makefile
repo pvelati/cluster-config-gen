@@ -10,6 +10,10 @@ k3s:
 rke2:
 	playbooks/rke2_cluster_setup.yaml -e cluster_name=$(CLUSTER)
 
+.PHONY: destroy CLUSTER=<cluster_name>
+destroy:
+	playbooks/uninstall_cluster.yaml -e cluster_name=$(CLUSTER)
+
 .PHONY: encrypt
 encrypt:
 	sops --encrypt --age `cat age-key.txt | grep -oP "public key: \K(.*)"` ./terraform.tfvars.json > terraform.tfvars.json.enc

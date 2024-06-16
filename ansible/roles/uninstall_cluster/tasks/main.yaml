@@ -1,0 +1,58 @@
+---
+- name: Check if k3s executable is present
+  ansible.builtin.stat:
+    path: /usr/local/bin/k3s
+  register: k3s_check
+
+- name: Debug
+  ansible.builtin.debug:
+    var: k3s_check
+
+- name: Check if rke2 executable is present
+  ansible.builtin.stat:
+    path: /usr/local/bin/rke2
+  register: rke2_check
+
+- name: Remove K3S
+  when: k3s_check.stat.exists
+  block:
+    - name: Uninstall K3s from masters
+      ansible.builtin.command:
+        cmd: /usr/local/bin/k3s-uninstall.sh
+      when: '"cluster_master" in group_names'
+
+    - name: Uninstall K3s from workers
+      ansible.builtin.command:
+        cmd: /usr/local/bin/k3s-agent-uninstall.sh
+      when: '"cluster_worker" in group_names'
+
+    - name: Check if k3s executable is present
+      ansible.builtin.stat:
+        path: /usr/local/bin/k3s
+      register: k3s_check
+
+- name: Remove RKE2
+  when: rke2_check.stat.exists
+  block:
+    - name: Uninstall RKE2 from masters
+      ansible.builtin.command:
+        cmd: /usr/local/bin/rke2-uninstall.sh
+      when: cluster_master in group_names
+
+    - name: Uninstall RKE2 from workers
+      ansible.builtin.command:
+        cmd: /usr/local/bin/rke2-agent-uninstall.sh
+      when: cluster_worker in group_names
+
+- name: Debug
+  ansible.builtin.debug:
+    var: k3s_check
+
+- name: Remove Rancher-related directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /var/lib/rancher
+    - /etc/rancher
+    - /root/.kube
