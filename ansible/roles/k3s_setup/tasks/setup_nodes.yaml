@@ -28,8 +28,8 @@
       cmd: /tmp/install.sh
       executable: /bin/sh
     environment:
-      INSTALL_K3S_EXEC: 'agent'
-      INSTALL_K3S_SKIP_START: 'true'
+      INSTALL_K3S_EXEC: "agent"
+      INSTALL_K3S_SKIP_START: "true"
       INSTALL_K3S_CHANNEL: "{{ k3s_channel }}"
     when: "'cluster_worker' in group_names"
 
