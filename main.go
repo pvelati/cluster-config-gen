@@ -39,32 +39,42 @@ func main() {
 		oneCluster.AnsibleMasterGroup = strings.ReplaceAll(fmt.Sprintf("%s_master", cluster.Name), "-", "_")
 		oneCluster.AnsibleWorkerGroup = strings.ReplaceAll(fmt.Sprintf("%s_worker", cluster.Name), "-", "_")
 
-		if cluster.MasterHa {
-			cluster.NumMaster = 3
+		if cluster.Controlplane.Cluster {
+			cluster.Controlplane.Num = 3
 			oneCluster.Ha = true
-			oneCluster.HaIp = fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, cluster.MasterLastOctet)
+			if cluster.Vip.Controlplane {
+				oneCluster.HaIp = fmt.Sprintf("%s.%d", cluster.Controlplane.AddressSansLastOctet, cluster.Controlplane.LastOctet)
+				oneCluster.HaFqdn = fmt.Sprintf("%s.%s", cluster.Controlplane.Domain, cluster.Controlplane.Domain)
+				oneCluster.Vip = true
+			} else {
+				oneCluster.HaIp = cluster.Vip.ControlplaneIp
+				oneCluster.HaFqdn = cluster.Vip.ControlplaneFqdn
+				oneCluster.Vip = false
+			}
 		} else {
-			cluster.NumMaster = 1
+			cluster.Controlplane.Num = 1
 			oneCluster.Ha = false
 		}
 
 		// Genera IP per i master
-		for masterNodeIndex := 0; masterNodeIndex < cluster.NumMaster; masterNodeIndex++ {
+		for masterNodeIndex := 0; masterNodeIndex < cluster.Controlplane.Num; masterNodeIndex++ {
 			nodeNumber := masterNodeIndex + 1
-			lastIpDigit := cluster.MasterLastOctet + masterNodeIndex
-			if cluster.MasterHa {
+			lastIpDigit := cluster.Controlplane.LastOctet + masterNodeIndex
+			if cluster.Controlplane.Cluster && cluster.Vip.Controlplane {
 				lastIpDigit++
 			}
 			host := fmt.Sprintf("k8s-%s-master-%d", cluster.Name, nodeNumber)
-			ip := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, lastIpDigit)
-			gateway := fmt.Sprintf("%s.%d", cluster.MasterAddressSansLastOctet, cluster.MasterGatewayLastOctet)
+			ip := fmt.Sprintf("%s.%d", cluster.Controlplane.AddressSansLastOctet, lastIpDigit)
+			gateway := fmt.Sprintf("%s.%d", cluster.Controlplane.AddressSansLastOctet, cluster.Controlplane.GatewayLastOctet)
 			oneCluster.Masters = append(oneCluster.Masters, types.InternalDataNode{
 				IP:                    ip,
 				Gateway:               gateway,
 				Host:                  host,
-				Domain:                cluster.MasterDomain,
-				ProxmoxVMID:           cluster.MasterBaseVmid + lastIpDigit,
+				Domain:                cluster.Controlplane.Domain,
+				Core:                  cluster.Controlplane.Core,
+				Memory:                cluster.Controlplane.Memory,
 				TerraformResourceName: strings.ReplaceAll(host, "-", "_"),
+				ProxmoxVMID:           cluster.Controlplane.BaseVmid + lastIpDigit,
 				ProxmoxVmName:         strings.ReplaceAll(host, "_", "-"),
 				ProxmoxVmDescription:  fmt.Sprintf("cluster %s - master node %d", cluster.Name, nodeNumber),
 				ProxmoxVmTags: []string{
@@ -74,19 +84,21 @@ func main() {
 		}
 
 		// Genera IP per i worker
-		for workerNodeIndex := 0; workerNodeIndex < cluster.NumWorker; workerNodeIndex++ {
+		for workerNodeIndex := 0; workerNodeIndex < cluster.Compute.Num; workerNodeIndex++ {
 			nodeNumber := workerNodeIndex + 1
-			lastIpDigit := cluster.WorkerLastOctet + workerNodeIndex
+			lastIpDigit := cluster.Compute.LastOctet + workerNodeIndex
 			host := fmt.Sprintf("k8s-%s-worker-%d", cluster.Name, nodeNumber)
-			ip := fmt.Sprintf("%s.%d", cluster.WorkerAddressSansLastOctet, lastIpDigit)
-			gateway := fmt.Sprintf("%s.%d", cluster.WorkerAddressSansLastOctet, cluster.WorkerGatewayLastOctet)
+			ip := fmt.Sprintf("%s.%d", cluster.Compute.AddressSansLastOctet, lastIpDigit)
+			gateway := fmt.Sprintf("%s.%d", cluster.Compute.AddressSansLastOctet, cluster.Compute.GatewayLastOctet)
 			oneCluster.Workers = append(oneCluster.Workers, types.InternalDataNode{
 				IP:                    ip,
 				Gateway:               gateway,
 				Host:                  host,
-				Domain:                cluster.WorkerDomain,
-				ProxmoxVMID:           cluster.WorkerBaseVmid + lastIpDigit,
+				Domain:                cluster.Compute.Domain,
+				Core:                  cluster.Compute.Core,
+				Memory:                cluster.Compute.Memory,
 				TerraformResourceName: strings.ReplaceAll(host, "-", "_"),
+				ProxmoxVMID:           cluster.Compute.BaseVmid + lastIpDigit,
 				ProxmoxVmName:         strings.ReplaceAll(host, "_", "-"),
 				ProxmoxVmDescription:  fmt.Sprintf("cluster %s - worker node %d", cluster.Name, nodeNumber),
 				ProxmoxVmTags: []string{

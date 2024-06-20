@@ -55,16 +55,8 @@ func GenerateTerraformResource(outputFile string, internalDataCluster types.Inte
 			},
 		})
 		vmBody.SetAttributeValue("clone", cty.StringVal("deb12-template"))
-		// vmBody.SetAttributeValue("cores", cty.NumberIntVal(2))
-		// vmBody.SetAttributeValue("memory", cty.NumberIntVal(1024))
-		// Valori per i nodi master e per i nodi worker
-		if strings.Contains(node.TerraformResourceName, "_master") {
-			vmBody.SetAttributeValue("cores", cty.NumberIntVal(2))
-			vmBody.SetAttributeValue("memory", cty.NumberIntVal(1024))
-		} else if strings.Contains(node.TerraformResourceName, "_worker") {
-			vmBody.SetAttributeValue("cores", cty.NumberIntVal(1))
-			vmBody.SetAttributeValue("memory", cty.NumberIntVal(512))
-		}
+		vmBody.SetAttributeValue("cores", cty.NumberIntVal(int64(node.Core)))
+		vmBody.SetAttributeValue("memory", cty.NumberIntVal(int64(node.Memory)))
 		vmBody.SetAttributeValue("sockets", cty.NumberIntVal(1))
 		vmBody.SetAttributeValue("cpu", cty.StringVal("host"))
 		vmBody.SetAttributeValue("scsihw", cty.StringVal("virtio-scsi-single"))

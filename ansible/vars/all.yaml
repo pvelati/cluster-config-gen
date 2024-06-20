@@ -1,1 +1,3 @@
 ---
+registry_mirror: false
+registry_mirror_address: 192.168.10.100

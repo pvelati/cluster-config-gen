@@ -1,28 +1,50 @@
 ---
 clusters:
   - name: prod
-    master_ha: true
-    master_base_vmid: 4000
-    master_address_sans_last_octet: 192.168.10
-    master_last_octet: 121
-    master_gateway_last_octet: 1
-    master_domain: priv.prod.labnet
-    num_worker: 2
-    worker_base_vmid: 5000
-    worker_address_sans_last_octet: 192.168.11
-    worker_last_octet: 131
-    worker_gateway_last_octet: 1
-    worker_domain: work.prod.labnet
+    controlplane:
+      cluster: true
+      core: 2
+      memory: 2048
+      base_vmid: 4000
+      address_sans_last_octet: 192.168.10
+      last_octet: 121
+      gateway_last_octet: 1
+      domain: priv.prod.labnet
+    compute:
+      num: 3
+      core: 4
+      memory: 4096
+      base_vmid: 5000
+      address_sans_last_octet: 192.168.11
+      last_octet: 131
+      gateway_last_octet: 1
+      domain: work.prod.labnet
+    vip:
+      controlplane: true
+      controlplane_ip: ""
+      controlplane_fqdn: ""
+      services: true
   - name: dev
-    master_ha: false
-    num_worker: 1
-    master_base_vmid: 6000
-    master_address_sans_last_octet: 172.18.10
-    master_last_octet: 111
-    master_gateway_last_octet: 1
-    master_domain: priv.dev.labnet
-    worker_base_vmid: 7000
-    worker_address_sans_last_octet: 172.18.11
-    worker_last_octet: 141
-    worker_gateway_last_octet: 256
-    worker_domain: work.dev.labnet
+    controlplane:
+      cluster: false
+      core: 1
+      memory: 1024
+      base_vmid: 6000
+      address_sans_last_octet: 172.18.10
+      last_octet: 111
+      gateway_last_octet: 1
+      domain: priv.dev.labnet
+    compute:
+      num: 3
+      core: 2
+      memory: 2048
+      base_vmid: 7000
+      address_sans_last_octet: 172.18.11
+      last_octet: 254
+      gateway_last_octet: 1
+      domain: work.dev.labnet
+    vip:
+      controlplane: false
+      controlplane_ip: 172.18.10.24
+      controlplane_fqdn: vip.priv.dev.labnet
+      services: true

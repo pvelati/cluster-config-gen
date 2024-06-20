@@ -53,10 +53,10 @@ func validateClusters(clusters []types.Cluster) error {
 
 	for _, cluster := range clusters {
 
-		if cluster.MasterHa {
-			cluster.NumMaster = 4 //3 masters + 1 vip
+		if cluster.Controlplane.Cluster {
+			cluster.Controlplane.Num = 4 //3 masters + 1 vip
 		} else {
-			cluster.NumMaster = 1
+			cluster.Controlplane.Num = 1
 		}
 
 		if cluster.Name == "" {
@@ -67,39 +67,39 @@ func validateClusters(clusters []types.Cluster) error {
 		}
 		nameSet[cluster.Name] = true
 
-		if cluster.NumWorker < 1 {
-			allErrors = append(allErrors, fmt.Errorf("%s - the cluster must have at least 1 worker but found %d", cluster.Name, cluster.NumWorker))
+		if cluster.Compute.Num < 1 {
+			allErrors = append(allErrors, fmt.Errorf("%s - the cluster must have at least 1 worker but found %d", cluster.Name, cluster.Compute.Num))
 		}
-		if cluster.MasterBaseVmid <= 0 {
-			allErrors = append(allErrors, fmt.Errorf("%s - master_base_vmid should be a positive integer but found %d", cluster.Name, cluster.MasterBaseVmid))
+		if cluster.Controlplane.BaseVmid <= 0 {
+			allErrors = append(allErrors, fmt.Errorf("%s - master_base_vmid should be a positive integer but found %d", cluster.Name, cluster.Controlplane.BaseVmid))
 		}
-		if cluster.MasterLastOctet <= 0 || cluster.MasterLastOctet >= 256 {
-			allErrors = append(allErrors, fmt.Errorf("%s - master_last_octet should be between 1 and 255 but found %d", cluster.Name, cluster.MasterLastOctet))
+		if cluster.Controlplane.LastOctet <= 0 || cluster.Controlplane.LastOctet >= 256 {
+			allErrors = append(allErrors, fmt.Errorf("%s - master_last_octet should be between 1 and 255 but found %d", cluster.Name, cluster.Controlplane.LastOctet))
 		}
-		if cluster.MasterGatewayLastOctet <= 0 || cluster.MasterGatewayLastOctet >= 256 {
-			allErrors = append(allErrors, fmt.Errorf("%s - master_gateway_last_octet should be between 1 and 255 but found %d", cluster.Name, cluster.MasterGatewayLastOctet))
+		if cluster.Controlplane.GatewayLastOctet <= 0 || cluster.Controlplane.GatewayLastOctet >= 256 {
+			allErrors = append(allErrors, fmt.Errorf("%s - master_gateway_last_octet should be between 1 and 255 but found %d", cluster.Name, cluster.Controlplane.GatewayLastOctet))
 		}
-		if cluster.MasterDomain == "" {
+		if cluster.Controlplane.Domain == "" {
 			allErrors = append(allErrors, fmt.Errorf("%s - master_domain cannot be empty", cluster.Name))
 		}
-		if cluster.WorkerBaseVmid < 0 {
-			allErrors = append(allErrors, fmt.Errorf("%s - worker_base_vmid should be a positive integer but found %d", cluster.Name, cluster.WorkerBaseVmid))
+		if cluster.Compute.BaseVmid < 0 {
+			allErrors = append(allErrors, fmt.Errorf("%s - worker_base_vmid should be a positive integer but found %d", cluster.Name, cluster.Compute.BaseVmid))
 		}
-		if cluster.WorkerLastOctet < 0 || cluster.WorkerLastOctet >= 256 {
-			allErrors = append(allErrors, fmt.Errorf("%s - worker_last_octet should be between 1 and 255 but found %d", cluster.Name, cluster.WorkerLastOctet))
+		if cluster.Compute.LastOctet < 0 || cluster.Compute.LastOctet >= 256 {
+			allErrors = append(allErrors, fmt.Errorf("%s - worker_last_octet should be between 1 and 255 but found %d", cluster.Name, cluster.Compute.LastOctet))
 		}
-		if cluster.WorkerGatewayLastOctet < 0 || cluster.WorkerGatewayLastOctet >= 256 {
-			allErrors = append(allErrors, fmt.Errorf("%s - worker_gateway_last_octet should be between 1 and 255 but found %d", cluster.Name, cluster.WorkerGatewayLastOctet))
+		if cluster.Compute.GatewayLastOctet < 0 || cluster.Compute.GatewayLastOctet >= 256 {
+			allErrors = append(allErrors, fmt.Errorf("%s - worker_gateway_last_octet should be between 1 and 255 but found %d", cluster.Name, cluster.Compute.GatewayLastOctet))
 		}
 
 		// Calculate and check IP ranges for masters
-		masterRange, err := calculateIpRange(cluster.MasterAddressSansLastOctet, cluster.MasterLastOctet, cluster.NumMaster)
+		masterRange, err := calculateIpRange(cluster.Controlplane.AddressSansLastOctet, cluster.Controlplane.LastOctet, cluster.Controlplane.Num)
 		if err != nil {
 			allErrors = append(allErrors, fmt.Errorf("error calculating master IP range for cluster %s: %v", cluster.Name, err))
 		}
 
 		// Calculate and check IP ranges for workers
-		workerRange, err := calculateIpRange(cluster.WorkerAddressSansLastOctet, cluster.WorkerLastOctet, cluster.NumWorker)
+		workerRange, err := calculateIpRange(cluster.Compute.AddressSansLastOctet, cluster.Compute.LastOctet, cluster.Compute.Num)
 		if err != nil {
 			allErrors = append(allErrors, fmt.Errorf("error calculating worker IP range for cluster %s: %v", cluster.Name, err))
 		}
