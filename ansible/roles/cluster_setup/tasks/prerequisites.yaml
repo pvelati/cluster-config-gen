@@ -1,0 +1,14 @@
+---
+- name: Create directories if they do not exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "/etc/rancher/{{ k8s_distro }}/"
+    - "/var/lib/rancher/{{ k8s_distro }}/server/manifests/"
+
+- name: Remove zram
+  ansible.builtin.apt:
+    name: "zram-tools"
+    state: absent

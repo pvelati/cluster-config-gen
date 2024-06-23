@@ -1,6 +1,6 @@
 #!/usr/bin/env ansible-playbook
 ---
-- name: Move hosts from {{ cluster_name }}_master to cluster_master
+- name: Dynamically creates groups for {{ cluster_name }}
   hosts: localhost
   gather_facts: false
   tasks:
@@ -11,10 +11,6 @@
       loop: "{{ groups[cluster_name + '_master'] }}"
       changed_when: false
 
-- name: Move hosts from {{ cluster_name }}_worker to cluster_worker
-  hosts: localhost
-  gather_facts: false
-  tasks:
     - name: Add hosts to cluster_worker group
       add_host:
         name: "{{ item }}"
@@ -32,6 +28,7 @@
   become: true
   vars_files:
     - ../vars/k3s.yaml
+    - ../vars/all.yaml
 
   roles:
     - k3s_setup

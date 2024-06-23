@@ -1,0 +1,16 @@
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: rke2-ingress-nginx
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    controller:
+      config:
+        use-forwarded-headers: "true"
+      service:
+        enabled: true
+        annotations:
+          kube-vip.io/loadbalancerIPs: "{{ services_vip_address }}"
+        type: LoadBalancer

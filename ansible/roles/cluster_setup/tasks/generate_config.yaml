@@ -1,0 +1,64 @@
+---
+- name: Define the content configfilecommon
+  set_fact:
+    configfilecommon:
+      token: '{{ cluster_token }}'
+
+- name: Define the content configfiletlsvip if vip present
+  set_fact:
+    configfiletlsvip:
+      tls-san:
+        - "{{ cluster_vip_fqdn }}"
+  when: cluster_vip_fqdn is defined
+
+- name: Define the content configfiletls
+  set_fact:
+    configfiletls:
+      tls-san: "{{ groups['cluster_master'] | map('extract', hostvars, 'inventory_hostname') | list }}"
+
+- name: Combine configfiletlsvip with configfiletls
+  set_fact:
+    configfiletls: "{{ configfiletlsvip | combine({'tls-san': configfiletlsvip['tls-san'] + configfiletls['tls-san']}) }}"
+  when: cluster_vip_fqdn is defined
+
+- name: Define the content configfileserver
+  set_fact:
+    configfileserver:
+      server: "https://{{ groups['cluster_master'][0] }}:6443"
+
+- name: Define the content configfileserver if vip present
+  set_fact:
+    configfileserver:
+      server: "https://{{ cluster_vip_fqdn }}:6443"
+  when: cluster_vip_fqdn is defined
+
+- name: Define the content configfileinit if vip present
+  set_fact:
+    configfileinit:
+      cluster-init: true
+  when: cluster_vip_fqdn is defined
+
+- name: Define the content configfilemaster
+  set_fact:
+    configfilemaster:
+      node-taint:
+        - "CriticalAddonsOnly=true:NoExecute"
+      write-kubeconfig-mode: "0644"
+
+- name: Save the YAML content to a file on first master node
+  copy:
+    content: "{{ configfilecommon | combine(configfiletls) | combine(configfilemaster) | combine(configfileinit) | to_nice_yaml }}"
+    dest: '/etc/rancher/k3s/config.yaml'
+  when: inventory_hostname in groups['cluster_master'][0]
+
+- name: Save the YAML content to a file on master 2 and 3
+  copy:
+    content: "{{ configfilecommon | combine(configfiletls) | combine(configfilemaster) | combine(configfileserver) | to_nice_yaml }}"
+    dest: '/etc/rancher/k3s/config.yaml'
+  when: inventory_hostname in groups['cluster_master'] and inventory_hostname != groups['cluster_master'][0]
+
+- name: Save the YAML content to a file WORKER
+  copy:
+    content: "{{ configfilecommon | combine(configfileserver) | to_nice_yaml }}"
+    dest: '/etc/rancher/k3s/config.yaml'
+  when: inventory_hostname in groups['cluster_worker']
