@@ -115,14 +115,7 @@ func GenerateTerraformResource(outputFile string, internalDataCluster types.Inte
 		vmBody.SetAttributeValue("os_type", cty.StringVal("cloud-init"))
 		vmBody.SetAttributeValue("ipconfig0", cty.StringVal("ip="+node.IP+"/24,gw="+node.Gateway))
 		vmBody.SetAttributeValue("searchdomain", cty.StringVal(node.Domain))
-		vmBody.SetAttributeTraversal("nameserver", hcl.Traversal{
-			hcl.TraverseRoot{
-				Name: "var",
-			},
-			hcl.TraverseAttr{
-				Name: "nameserver",
-			},
-		})
+		vmBody.SetAttributeValue("nameserver", cty.StringVal(node.Nameserver))
 		vmBody.SetAttributeTraversal("ciuser", hcl.Traversal{
 			hcl.TraverseRoot{
 				Name: "var",

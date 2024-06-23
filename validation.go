@@ -82,6 +82,9 @@ func validateClusters(clusters []types.Cluster) error {
 		if cluster.Controlplane.Domain == "" {
 			allErrors = append(allErrors, fmt.Errorf("%s - master_domain cannot be empty", cluster.Name))
 		}
+		if cluster.Controlplane.Nameserver == "" {
+			allErrors = append(allErrors, fmt.Errorf("%s - controlplane_nameserver cannot be empty", cluster.Name))
+		}
 		if cluster.Compute.BaseVmid < 0 {
 			allErrors = append(allErrors, fmt.Errorf("%s - worker_base_vmid should be a positive integer but found %d", cluster.Name, cluster.Compute.BaseVmid))
 		}
@@ -90,6 +93,9 @@ func validateClusters(clusters []types.Cluster) error {
 		}
 		if cluster.Compute.GatewayLastOctet < 0 || cluster.Compute.GatewayLastOctet >= 256 {
 			allErrors = append(allErrors, fmt.Errorf("%s - worker_gateway_last_octet should be between 1 and 255 but found %d", cluster.Name, cluster.Compute.GatewayLastOctet))
+		}
+		if cluster.Compute.Nameserver == "" {
+			allErrors = append(allErrors, fmt.Errorf("%s - worker_nameserver cannot be empty", cluster.Name))
 		}
 
 		// Calculate and check IP ranges for masters

@@ -23,10 +23,11 @@ type InternalDataCluster struct {
 
 // InternalDataNode represents the data of a generic node within a cluster
 type InternalDataNode struct {
-	Host    string
-	Domain  string
-	IP      string
-	Gateway string
+	Host       string
+	Domain     string
+	IP         string
+	Gateway    string
+	Nameserver string
 
 	Core   int
 	Memory int

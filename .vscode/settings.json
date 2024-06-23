@@ -1,6 +1,7 @@
 {
     "ansible.python.interpreterPath": "/bin/python",
     "cSpell.words": [
+        "nameserver",
         "outputfilegeneration",
         "scsihw",
         "vmid"

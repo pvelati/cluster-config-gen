@@ -23,6 +23,7 @@ type Controlplane struct {
 	LastOctet            int    `yaml:"last_octet"`
 	GatewayLastOctet     int    `yaml:"gateway_last_octet"`
 	Domain               string `yaml:"domain"`
+	Nameserver           string `yaml:"nameserver"`
 }
 
 type Compute struct {
@@ -34,6 +35,7 @@ type Compute struct {
 	LastOctet            int    `yaml:"last_octet"`
 	GatewayLastOctet     int    `yaml:"gateway_last_octet"`
 	Domain               string `yaml:"domain"`
+	Nameserver           string `yaml:"nameserver"`
 }
 
 type Vip struct {
