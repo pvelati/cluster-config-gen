@@ -1,8 +1,10 @@
 # cluster-config-gen
 
-**Generate full RKE2/K3s clusters on Proxmox in minutes.**
+**Generate full RKE2/K3s clusters on Proxmox.**
 
-`cluster-config-gen` is a configuration-driven tool to generate complete infrastructure and provisioning files for Kubernetes clusters (RKE2 or K3s) on Proxmox. With a single YAML configuration file, it produces ready-to-use Terraform HCL files and Ansible inventories/vars — allowing rapid and reproducible cluster deployments.
+Configuration-driven tool used to generate k3s or rke2 clusters on Proxmox.
+
+With a single YAML configuration file, it produces ready-to-use Terraform HCL files and Ansible inventories/vars.
 
 ---
 
