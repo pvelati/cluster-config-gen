@@ -6,19 +6,19 @@ clusters:
       core: 2
       memory: 2048
       base_vmid: 4000
-      address_sans_last_octet: 192.168.10
+      address_sans_last_octet: 10.10.10
       last_octet: 121
       gateway_last_octet: 1
-      domain: priv.prod.labnet
+      domain: priv.prod.example.com
     compute:
       num: 3
       core: 4
       memory: 4096
       base_vmid: 5000
-      address_sans_last_octet: 192.168.11
+      address_sans_last_octet: 10.10.11
       last_octet: 131
       gateway_last_octet: 1
-      domain: work.prod.labnet
+      domain: work.prod.example.com
     vip:
       controlplane: true
       controlplane_ip: ""
@@ -30,21 +30,21 @@ clusters:
       core: 1
       memory: 1024
       base_vmid: 6000
-      address_sans_last_octet: 172.18.10
+      address_sans_last_octet: 10.20.10
       last_octet: 111
       gateway_last_octet: 1
-      domain: priv.dev.labnet
+      domain: priv.dev.example.net
     compute:
       num: 3
       core: 2
       memory: 2048
       base_vmid: 7000
-      address_sans_last_octet: 172.18.11
+      address_sans_last_octet: 10.20.11
       last_octet: 254
       gateway_last_octet: 1
-      domain: work.dev.labnet
+      domain: work.dev.example.net
     vip:
       controlplane: false
-      controlplane_ip: 172.18.10.24
-      controlplane_fqdn: vip.priv.dev.labnet
+      controlplane_ip: 10.20.10.24
+      controlplane_fqdn: vip.priv.dev.example.net
       services: true

@@ -18,9 +18,9 @@ func GenerateGroupVarsYAML(
 	// Creazione della mappa per memorizzare i dati YAML prendendoli in input
 	yamlGroupVars := map[string]interface{}{
 		"cluster_token":          fmt.Sprintf("%x", sha256.Sum256([]byte(internalDataCluster.Name)))[:15],
-		"services_vip_address":   "192.168.10.120",
-		"services_range_start":   "192.168.10.121",
-		"services_range_end":     "192.168.10.122",
+		"services_vip_address":   "10.10.0.120",
+		"services_range_start":   "10.10.0.121",
+		"services_range_end":     "10.10.0.122",
 		"active_kubeconfig_file": "kubeconfig_test.yaml",
 		// "github_token":           "aaaaaaaaaaaaaaaaaaa",
 		// "github_user":            "pvelati",
