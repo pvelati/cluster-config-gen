@@ -93,7 +93,9 @@ simplest to keep as explicit values in that configuration.
 
 ## Status
 
-- Repository: **archived, read-only, public**.
+- Repository: archived locally (final tag `archive-2026-09-26`);
+  the GitHub "Archived" toggle and public-visibility check are the
+  remaining manual steps on the hosting side.
 - History: preserved, not rewritten.
 - Generated examples and the original implementation: preserved.
 - No further feature work is planned.
